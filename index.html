@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#F4EEE3" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" href="icon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<title>Мои контакты</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { background:#F4EEE3; }
+.cb-root {
+  --paper:#F4EEE3; --paper-2:#EBE2D2; --card:#FBF8F1; --ink:#221C15; --ink-soft:#6B6253;
+  --accent:#B85335; --accent-deep:#8F3D26; --line:rgba(34,28,21,0.10); --line-2:rgba(34,28,21,0.16);
+  font-family:'Instrument Sans',system-ui,sans-serif; background:var(--paper); color:var(--ink); min-height:100vh; width:100%; position:relative;
+}
+.cb-root::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.4; z-index:0;
+  background-image:radial-gradient(rgba(34,28,21,0.035) 1px,transparent 1px); background-size:22px 22px; }
+.cb-wrap { max-width:760px; margin:0 auto; padding:26px 18px 120px; position:relative; z-index:1; }
+.cb-head { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
+.cb-title { font-family:'Fraunces',serif; font-weight:600; font-size:34px; line-height:1; letter-spacing:-0.02em; }
+.cb-sub { font-size:13px; color:var(--ink-soft); margin-top:8px; display:flex; align-items:center; gap:6px; }
+.cb-actions { display:flex; gap:7px; flex-wrap:wrap; }
+.cb-btn { font-family:inherit; cursor:pointer; border:none; display:inline-flex; align-items:center; justify-content:center; gap:7px; font-size:14px; font-weight:500; border-radius:100px; padding:11px 16px; transition:all .18s ease; min-height:44px; }
+.cb-btn:disabled { opacity:.45; }
+.cb-btn-primary { background:var(--accent); color:#FBF8F1; box-shadow:0 2px 0 var(--accent-deep); }
+.cb-btn-primary:not(:disabled):active { transform:translateY(1px); box-shadow:0 1px 0 var(--accent-deep); }
+.cb-btn-ghost { background:transparent; color:var(--ink-soft); border:1px solid var(--line-2); padding:11px 13px; }
+.cb-btn-ghost:active { background:var(--paper-2); color:var(--ink); }
+.cb-search { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line-2); border-radius:14px; padding:13px 16px; margin-bottom:14px; }
+.cb-search:focus-within { border-color:var(--accent); }
+.cb-search input { border:none; outline:none; background:transparent; font-family:inherit; font-size:16px; color:var(--ink); width:100%; }
+.cb-tags { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:18px; scrollbar-width:none; }
+.cb-tags::-webkit-scrollbar { display:none; }
+.cb-chip { white-space:nowrap; cursor:pointer; font-size:13px; font-weight:500; padding:8px 14px; border-radius:100px; border:1px solid var(--line-2); background:transparent; color:var(--ink-soft); font-family:inherit; }
+.cb-chip.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.cb-bday-banner { background:linear-gradient(100deg,#F6E4D0,#F2D9C2); border:1px solid rgba(184,83,53,0.25); border-radius:14px; padding:14px 16px; margin-bottom:18px; }
+.cb-bday-banner h4 { font-family:'Fraunces',serif; font-size:15px; font-weight:600; display:flex; align-items:center; gap:8px; color:var(--accent-deep); margin-bottom:8px; }
+.cb-bday-item { font-size:13.5px; display:flex; justify-content:space-between; cursor:pointer; padding:3px 0; }
+.cb-bday-item b { color:var(--accent-deep); }
+.cb-letter { font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--accent); margin:22px 4px 8px; text-transform:uppercase; letter-spacing:0.04em; }
+.cb-letter:first-of-type { margin-top:4px; }
+.cb-card { display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:9px; cursor:pointer; }
+.cb-card:active { background:var(--paper-2); }
+.cb-avatar { flex-shrink:0; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#FBF8F1; font-weight:600; font-size:16px; font-family:'Fraunces',serif; overflow:hidden; background-size:cover; background-position:center; }
+.cb-card-main { flex:1; min-width:0; }
+.cb-card-name { font-weight:600; font-size:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cb-card-meta { font-size:13px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:1px; }
+.cb-card-right { display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0; }
+.cb-card-bday { font-size:11px; font-weight:600; color:var(--accent-deep); background:rgba(184,83,53,0.1); padding:4px 9px; border-radius:100px; display:flex; align-items:center; gap:4px; }
+.cb-bars { display:flex; gap:2px; }
+.cb-bar { width:5px; height:11px; border-radius:2px; background:var(--line-2); }
+.cb-empty { text-align:center; padding:54px 20px; }
+.cb-empty-ico { width:64px; height:64px; border-radius:20px; background:var(--paper-2); display:inline-flex; align-items:center; justify-content:center; color:var(--ink-soft); margin-bottom:18px; }
+.cb-empty h3 { font-family:'Fraunces',serif; font-size:22px; font-weight:600; margin-bottom:8px; }
+.cb-empty p { font-size:14px; color:var(--ink-soft); margin:0 auto 22px; max-width:330px; }
+.cb-overlay { position:fixed; inset:0; background:rgba(34,28,21,0.42); backdrop-filter:blur(3px); z-index:50; display:flex; align-items:flex-end; justify-content:center; animation:cbFade .2s ease; }
+@keyframes cbFade { from{opacity:0;} to{opacity:1;} }
+@media (min-width:640px){ .cb-overlay{ align-items:center; } }
+.cb-modal { background:var(--paper); width:100%; max-width:560px; max-height:94vh; overflow-y:auto; border-radius:22px 22px 0 0; animation:cbUp .26s cubic-bezier(.2,.8,.2,1); }
+@media (min-width:640px){ .cb-modal{ border-radius:22px; } }
+@keyframes cbUp { from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;} }
+.cb-modal-head { display:flex; align-items:center; justify-content:space-between; padding:18px 20px 14px; position:sticky; top:0; background:var(--paper); z-index:3; border-bottom:1px solid var(--line); }
+.cb-modal-head h2 { font-family:'Fraunces',serif; font-size:22px; font-weight:600; }
+.cb-iconbtn { cursor:pointer; border:none; background:var(--paper-2); color:var(--ink-soft); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cb-iconbtn:active { background:var(--line-2); color:var(--ink); }
+.cb-modal-body { padding:16px 20px 26px; }
+.cb-field { margin-bottom:15px; }
+.cb-field label { display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em; }
+.cb-input,.cb-textarea { width:100%; font-family:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line-2); border-radius:11px; padding:12px 14px; outline:none; }
+.cb-input:focus,.cb-textarea:focus { border-color:var(--accent); }
+.cb-textarea { resize:vertical; min-height:72px; line-height:1.5; }
+.cb-row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media (max-width:480px){ .cb-row2{ grid-template-columns:1fr; } }
+.cb-social-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+.cb-select { font-family:inherit; font-size:14px; color:var(--ink); background:var(--card); border:1px solid var(--line-2); border-radius:11px; padding:12px 8px; outline:none; flex-shrink:0; width:120px; }
+.cb-social-row .cb-input { flex:1; }
+.cb-add-social { background:transparent; border:1px dashed var(--line-2); color:var(--ink-soft); cursor:pointer; font-family:inherit; font-size:13px; padding:11px; border-radius:11px; width:100%; display:flex; align-items:center; justify-content:center; gap:6px; }
+.cb-form-actions { display:flex; gap:10px; margin-top:22px; }
+.cb-form-actions .cb-btn { flex:1; }
+.cb-ai { background:linear-gradient(125deg,#2B2620,#3A332A); border-radius:16px; padding:16px; margin-bottom:20px; color:#F4EEE3; }
+.cb-ai h3 { font-family:'Fraunces',serif; font-size:16px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.cb-ai p { font-size:12.5px; color:#C9BFAE; margin-bottom:12px; line-height:1.45; }
+.cb-ai-text { width:100%; font-family:inherit; font-size:15px; color:#F4EEE3; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:11px; padding:12px; outline:none; resize:vertical; min-height:64px; line-height:1.5; }
+.cb-ai-text::placeholder { color:#9A917F; }
+.cb-ai-row { display:flex; gap:8px; margin-top:10px; }
+.cb-mic { flex-shrink:0; width:52px; height:52px; border-radius:50%; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; background:#F4EEE3; color:#2B2620; transition:all .2s; }
+.cb-mic.rec { background:var(--accent); color:#fff; animation:pulse 1.3s infinite; }
+@keyframes pulse { 0%{ box-shadow:0 0 0 0 rgba(184,83,53,.55);} 70%{ box-shadow:0 0 0 14px rgba(184,83,53,0);} 100%{ box-shadow:0 0 0 0 rgba(184,83,53,0);} }
+.cb-ai-go { flex:1; background:var(--accent); color:#fff; border:none; cursor:pointer; font-family:inherit; font-weight:600; font-size:14px; border-radius:11px; display:flex; align-items:center; justify-content:center; gap:8px; }
+.cb-ai-go:disabled { opacity:.5; }
+.cb-ai-note { font-size:12px; color:#E8C9A8; margin-top:8px; line-height:1.4; }
+.cb-levels { display:flex; gap:6px; }
+.cb-level-seg { flex:1; height:40px; border-radius:9px; border:1px solid var(--line-2); background:var(--card); cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; color:var(--ink-soft); }
+.cb-level-label { font-size:13px; color:var(--ink); font-weight:600; margin-top:8px; text-align:center; }
+.cb-photo-pick { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.cb-photo-prev { width:72px; height:72px; border-radius:18px; background:var(--paper-2); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); overflow:hidden; background-size:cover; background-position:center; flex-shrink:0; }
+.cb-detail-top { display:flex; flex-direction:column; align-items:center; text-align:center; padding:8px 0 4px; }
+.cb-detail-avatar { width:96px; height:96px; border-radius:28px; display:flex; align-items:center; justify-content:center; color:#FBF8F1; font-weight:600; font-size:34px; font-family:'Fraunces',serif; margin-bottom:14px; overflow:hidden; background-size:cover; background-position:center; }
+.cb-detail-name { font-family:'Fraunces',serif; font-size:26px; font-weight:600; }
+.cb-detail-role { font-size:14px; color:var(--ink-soft); margin-top:4px; }
+.cb-level-badge { display:inline-flex; align-items:center; gap:8px; margin-top:12px; padding:7px 14px; border-radius:100px; font-size:13px; font-weight:600; }
+.cb-detail-tags { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:12px; }
+.cb-detail-tag { font-size:12px; font-weight:500; background:var(--paper-2); color:var(--ink-soft); padding:5px 11px; border-radius:100px; }
+.cb-info { margin-top:20px; display:flex; flex-direction:column; gap:2px; }
+.cb-info-row { display:flex; align-items:center; gap:13px; padding:13px 4px; border-bottom:1px solid var(--line); text-decoration:none; color:inherit; border-radius:8px; }
+.cb-info-row:active { background:var(--card); }
+.cb-info-ico { width:40px; height:40px; border-radius:12px; background:var(--paper-2); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cb-info-label { font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; }
+.cb-info-val { font-size:15px; color:var(--ink); font-weight:500; word-break:break-word; }
+.cb-note-box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-top:8px; font-size:14.5px; line-height:1.55; white-space:pre-wrap; }
+.cb-confirm { background:var(--paper); border-radius:18px; padding:24px; max-width:360px; width:calc(100% - 36px); text-align:center; }
+.cb-confirm h3 { font-family:'Fraunces',serif; font-size:20px; margin-bottom:8px; }
+.cb-confirm p { font-size:14px; color:var(--ink-soft); margin-bottom:20px; }
+.cb-confirm-actions { display:flex; gap:10px; }
+.cb-confirm-actions .cb-btn { flex:1; }
+.cb-btn-danger { background:#9A3B2E; color:#FBF8F1; }
+.cb-loading { text-align:center; padding:90px; color:var(--ink-soft); }
+.cb-spin { animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+/* stats */
+.cb-stat-hero { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+.cb-stat-card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+.cb-stat-num { font-family:'Fraunces',serif; font-size:32px; font-weight:600; line-height:1; }
+.cb-stat-lab { font-size:12.5px; color:var(--ink-soft); margin-top:6px; }
+.cb-stat-sec { font-family:'Fraunces',serif; font-size:15px; font-weight:600; margin:20px 0 10px; }
+.cb-lvl-row { display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+.cb-lvl-name { font-size:13px; width:130px; flex-shrink:0; color:var(--ink); }
+.cb-lvl-track { flex:1; height:10px; background:var(--paper-2); border-radius:6px; overflow:hidden; }
+.cb-lvl-fill { height:100%; border-radius:6px; transition:width .4s; }
+.cb-lvl-ct { font-size:13px; font-weight:600; width:26px; text-align:right; }
+.cb-tagstat { display:flex; flex-wrap:wrap; gap:8px; }
+.cb-tagstat span { background:var(--paper-2); border-radius:100px; padding:6px 12px; font-size:13px; }
+.cb-tagstat b { color:var(--accent); }
+/* settings */
+.cb-set-note { font-size:13px; color:var(--ink-soft); line-height:1.5; margin-bottom:16px; }
+.cb-set-note a { color:var(--accent); }
+.cb-link { color:var(--accent); cursor:pointer; text-decoration:underline; }
+</style>
+</head>
+<body>
+<div id="root"><div style="padding:90px;text-align:center;font-family:sans-serif;color:#6B6253">Загрузка…</div></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef } = React;
+
+/* ---------- storage (localStorage + in-memory fallback) ---------- */
+const _mem = {};
+const storage = {
+  async get(k){ try { const v = localStorage.getItem(k); if(v!==null) return {value:v}; } catch(e){} return (k in _mem)?{value:_mem[k]}:null; },
+  async set(k,v){ _mem[k]=v; try { localStorage.setItem(k,v); } catch(e){} return {value:v}; },
+  async delete(k){ delete _mem[k]; try { localStorage.removeItem(k); } catch(e){} return {deleted:true}; },
+};
+
+/* ---------- config ---------- */
+const META_KEY = "contacts-db-v2";
+const PHOTO_PREFIX = "contact-photo:";
+const KEY_STORE = "cb-anthropic-key";
+const MODEL = "claude-sonnet-4-6"; // можно заменить на свою модель
+const SOCIAL_TYPES = ["Telegram","WhatsApp","Instagram","VK","LinkedIn","X (Twitter)","Facebook","Другое"];
+const LEVELS = [
+  {n:1,label:"Знаю по имени",color:"#B3A894"},
+  {n:2,label:"Знакомый",color:"#C39B62"},
+  {n:3,label:"Приятель",color:"#C47A45"},
+  {n:4,label:"Хороший знакомый",color:"#BC5E38"},
+  {n:5,label:"Друг",color:"#A8442C"},
+  {n:6,label:"Близкий человек",color:"#8C2E20"},
+];
+const levelInfo = (n)=>LEVELS.find(l=>l.n===n)||null;
+const AVATAR_COLORS = ["#B85335","#7A6A3A","#3E6B5A","#8F5B6E","#4A5C8A","#A8783B","#5C7A4A","#9A4A4A","#6B5B95","#3D7A7A"];
+function colorFor(s){ let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return AVATAR_COLORS[h%AVATAR_COLORS.length]; }
+function initials(name){ const p=name.trim().split(/\s+/).filter(Boolean); if(!p.length) return "?"; if(p.length===1) return p[0].slice(0,2).toUpperCase(); return (p[0][0]+p[1][0]).toUpperCase(); }
+function daysUntilBirthday(b){ if(!b) return null; const d=new Date(b); if(isNaN(d)) return null; const t=new Date(); t.setHours(0,0,0,0); let next=new Date(t.getFullYear(),d.getMonth(),d.getDate()); if(next<t) next=new Date(t.getFullYear()+1,d.getMonth(),d.getDate()); return Math.round((next-t)/86400000); }
+function formatBirthday(b){ if(!b) return ""; const d=new Date(b); if(isNaN(d)) return ""; const m=["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"]; return d.getDate()+" "+m[d.getMonth()]; }
+function plural(n){ const a=n%10,b=n%100; if(a===1&&b!==11) return "контакт"; if(a>=2&&a<=4&&(b<10||b>=20)) return "контакта"; return "контактов"; }
+function pluralDays(n){ const a=n%10,b=n%100; if(a===1&&b!==11) return "день"; if(a>=2&&a<=4&&(b<10||b>=20)) return "дня"; return "дней"; }
+
+/* ---------- icons (inline SVG) ---------- */
+const PATHS = {
+  search:<><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></>,
+  plus:<><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+  x:<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+  phone:<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4.07 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/>,
+  mail:<><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></>,
+  building:<><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><line x1="3" y1="22" x2="21" y2="22"/><line x1="10" y1="7" x2="14" y2="7"/><line x1="10" y1="11" x2="14" y2="11"/><line x1="10" y1="15" x2="14" y2="15"/></>,
+  cake:<><rect x="4" y="11" width="16" height="10" rx="2"/><line x1="12" y1="11" x2="12" y2="6"/><circle cx="12" cy="4.4" r="1.2"/></>,
+  trash:<><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
+  pencil:<><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></>,
+  download:<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></>,
+  user:<><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="8" r="4"/></>,
+  users:<><path d="M16 21a6 6 0 0 0-12 0"/><circle cx="10" cy="8" r="4"/><path d="M21 21a5.5 5.5 0 0 0-4-5.3"/></>,
+  chevronLeft:<polyline points="15,18 9,12 15,6"/>,
+  note:<><path d="M4 4a2 2 0 0 1 2-2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></>,
+  send:<><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></>,
+  check:<polyline points="20,6 9,17 4,12"/>,
+  mapPin:<><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>,
+  calHeart:<><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><path d="M12 18s-3-1.7-3-3.5c0-1 .8-1.5 1.5-1.5.6 0 1.1.4 1.5 1 .4-.6.9-1 1.5-1 .7 0 1.5.5 1.5 1.5 0 1.8-3 3.5-3 3.5Z"/></>,
+  mic:<><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/></>,
+  sparkles:<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8Z"/>,
+  camera:<><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h8l2 3h3a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="3.5"/></>,
+  loader:<><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="7.8" y2="7.8"/><line x1="16.2" y1="16.2" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="7.8" y2="16.2"/><line x1="16.2" y1="7.8" x2="19.1" y2="4.9"/></>,
+  square:<rect x="6" y="6" width="12" height="12" rx="2"/>,
+  settings:<><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2.2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2.2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2.2"/></>,
+  chart:<><rect x="4" y="11" width="3.5" height="9" rx="1"/><rect x="10.2" y="5" width="3.5" height="15" rx="1"/><rect x="16.5" y="14" width="3.5" height="6" rx="1"/></>,
+};
+function Ic({name, size=18, cls}){
+  return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{PATHS[name]}</svg>;
+}
+
+function compressImage(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>{ const img=new Image();
+      img.onload=()=>{ const max=460; let w=img.width,h=img.height;
+        if(w>h&&w>max){h=h*max/w;w=max;} else if(h>max){w=w*max/h;h=max;}
+        const c=document.createElement("canvas"); c.width=w; c.height=h;
+        c.getContext("2d").drawImage(img,0,0,w,h); resolve(c.toDataURL("image/jpeg",0.74)); };
+      img.onerror=reject; img.src=r.result; };
+    r.onerror=reject; r.readAsDataURL(file);
+  });
+}
+
+const emptyForm = { name:"",phone:"",email:"",company:"",position:"",birthday:"",metPlace:"",metWhen:"",level:null,notes:"",tagsStr:"",socials:[],photo:"" };
+
+function App(){
+  const [contacts,setContacts]=useState([]);
+  const [photos,setPhotos]=useState({});
+  const [loading,setLoading]=useState(true);
+  const [search,setSearch]=useState("");
+  const [activeTag,setActiveTag]=useState(null);
+  const [showForm,setShowForm]=useState(false);
+  const [form,setForm]=useState(emptyForm);
+  const [editId,setEditId]=useState(null);
+  const [viewId,setViewId]=useState(null);
+  const [confirmId,setConfirmId]=useState(null);
+  const [showStats,setShowStats]=useState(false);
+  const [showSettings,setShowSettings]=useState(false);
+  const [apiKey,setApiKey]=useState("");
+  const [keyDraft,setKeyDraft]=useState("");
+  const [aiText,setAiText]=useState("");
+  const [recording,setRecording]=useState(false);
+  const [aiBusy,setAiBusy]=useState(false);
+  const [aiNote,setAiNote]=useState("");
+  const recogRef=useRef(null), fileRef=useRef(null), photoRef=useRef(null);
+  const speechOK = typeof window!=="undefined" && (window.SpeechRecognition||window.webkitSpeechRecognition);
+
+  useEffect(()=>{ (async()=>{
+    let list=[];
+    const res=await storage.get(META_KEY); if(res&&res.value){ try{ list=JSON.parse(res.value); }catch(e){} }
+    setContacts(list);
+    const pmap={};
+    await Promise.all(list.map(async c=>{ const p=await storage.get(PHOTO_PREFIX+c.id); if(p&&p.value) pmap[c.id]=p.value; }));
+    setPhotos(pmap);
+    const k=await storage.get(KEY_STORE); if(k&&k.value){ setApiKey(k.value); setKeyDraft(k.value); }
+    setLoading(false);
+  })(); },[]);
+
+  const persist=async(next)=>{ setContacts(next); await storage.set(META_KEY,JSON.stringify(next)); };
+
+  const allTags=useMemo(()=>{ const s=new Set(); contacts.forEach(c=>(c.tags||[]).forEach(t=>s.add(t))); return [...s].sort((a,b)=>a.localeCompare(b,"ru")); },[contacts]);
+  const filtered=useMemo(()=>{ const q=search.trim().toLowerCase();
+    return contacts.filter(c=>{ if(activeTag&&!(c.tags||[]).includes(activeTag)) return false; if(!q) return true;
+      return [c.name,c.phone,c.email,c.company,c.position,c.notes,c.metPlace,c.metWhen,...(c.tags||[]),...(c.socials||[]).map(s=>s.value)].join(" ").toLowerCase().includes(q);
+    }).sort((a,b)=>a.name.localeCompare(b.name,"ru")); },[contacts,search,activeTag]);
+  const grouped=useMemo(()=>{ const g={}; filtered.forEach(c=>{ const L=(c.name[0]||"#").toUpperCase(); (g[L]=g[L]||[]).push(c); }); return Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0],"ru")); },[filtered]);
+  const upcoming=useMemo(()=>contacts.map(c=>({c,d:daysUntilBirthday(c.birthday)})).filter(x=>x.d!==null&&x.d<=30).sort((a,b)=>a.d-b.d).slice(0,4),[contacts]);
+
+  const stats=useMemo(()=>{
+    const byLevel={}; LEVELS.forEach(l=>byLevel[l.n]=0);
+    let withPhoto=0; const tagCt={};
+    contacts.forEach(c=>{ if(c.level) byLevel[c.level]++; if(photos[c.id]) withPhoto++; (c.tags||[]).forEach(t=>tagCt[t]=(tagCt[t]||0)+1); });
+    const topTags=Object.entries(tagCt).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const close=contacts.filter(c=>c.level>=5).length;
+    const bdays=contacts.filter(c=>{ const d=daysUntilBirthday(c.birthday); return d!==null&&d<=30; }).length;
+    const maxLvl=Math.max(1,...Object.values(byLevel));
+    return {byLevel,withPhoto,topTags,close,bdays,maxLvl};
+  },[contacts,photos]);
+
+  const openAdd=()=>{ setForm(emptyForm); setEditId(null); setAiText(""); setAiNote(""); setShowForm(true); };
+  const openEdit=(c)=>{ setForm({ name:c.name,phone:c.phone||"",email:c.email||"",company:c.company||"",position:c.position||"",birthday:c.birthday||"",metPlace:c.metPlace||"",metWhen:c.metWhen||"",level:c.level||null,notes:c.notes||"",tagsStr:(c.tags||[]).join(", "),socials:c.socials||[],photo:photos[c.id]||"" }); setEditId(c.id); setViewId(null); setAiText(""); setAiNote(""); setShowForm(true); };
+
+  const saveContact=async()=>{ if(!form.name.trim()) return;
+    const tags=form.tagsStr.split(",").map(t=>t.trim()).filter(Boolean);
+    const socials=form.socials.filter(s=>s.value.trim());
+    const data={ name:form.name.trim(),phone:form.phone.trim(),email:form.email.trim(),company:form.company.trim(),position:form.position.trim(),birthday:form.birthday,metPlace:form.metPlace.trim(),metWhen:form.metWhen.trim(),level:form.level,notes:form.notes.trim(),tags,socials };
+    const id=editId||(Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+    const next=editId?contacts.map(c=>c.id===editId?{...c,...data}:c):[...contacts,{id,...data}];
+    await persist(next);
+    if(form.photo){ await storage.set(PHOTO_PREFIX+id,form.photo); setPhotos(p=>({...p,[id]:form.photo})); }
+    else { await storage.delete(PHOTO_PREFIX+id); setPhotos(p=>{ const n={...p}; delete n[id]; return n; }); }
+    setShowForm(false);
+  };
+  const deleteContact=async(id)=>{ await persist(contacts.filter(c=>c.id!==id)); await storage.delete(PHOTO_PREFIX+id); setPhotos(p=>{ const n={...p}; delete n[id]; return n; }); setConfirmId(null); setViewId(null); };
+
+  const toggleRec=()=>{ if(recording){ recogRef.current&&recogRef.current.stop(); return; } setAiNote("");
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ setAiNote("Голосовой ввод недоступен в этом браузере — напечатайте текст, ИИ всё равно разберёт."); return; }
+    const r=new SR(); r.lang="ru-RU"; r.continuous=true; r.interimResults=true;
+    let base=aiText?aiText+" ":"";
+    r.onresult=(e)=>{ let interim="",fin=""; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fin+=t; else interim+=t; } if(fin) base+=fin; setAiText(base+interim); };
+    r.onerror=(e)=>{ setAiNote(e.error==="not-allowed"?"Нет доступа к микрофону — разрешите его в настройках браузера.":"Ошибка распознавания: "+e.error); setRecording(false); };
+    r.onend=()=>setRecording(false);
+    recogRef.current=r; r.start(); setRecording(true);
+  };
+
+  function localParse(text){ const out={notes:text};
+    const em=text.match(/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/); if(em) out.email=em[0];
+    const ph=text.match(/\+?\d[\d\s\-().]{7,}\d/); if(ph) out.phone=ph[0].trim();
+    return out;
+  }
+
+  const applyParsed=(p)=>{ setForm(f=>({ ...f,
+    name:p.name||f.name, phone:p.phone||f.phone, email:p.email||f.email, company:p.company||f.company, position:p.position||f.position,
+    birthday:/^\d{4}-\d{2}-\d{2}$/.test(p.birthday||"")?p.birthday:f.birthday, metPlace:p.metPlace||f.metPlace, metWhen:p.metWhen||f.metWhen,
+    level:(p.level>=1&&p.level<=6)?p.level:f.level,
+    tagsStr:(Array.isArray(p.tags)&&p.tags.length)?p.tags.join(", "):f.tagsStr,
+    socials:(Array.isArray(p.socials)&&p.socials.filter(s=>s&&s.value).length)?p.socials.filter(s=>s&&s.value).map(s=>({type:SOCIAL_TYPES.includes(s.type)?s.type:"Другое",value:s.value})):f.socials,
+    notes:p.notes||f.notes,
+  })); };
+
+  const aiFill=async()=>{ const text=aiText.trim(); if(!text) return; setAiBusy(true); setAiNote("");
+    if(recording&&recogRef.current) recogRef.current.stop();
+    if(!apiKey){ applyParsed(localParse(text)); setAiText(""); setAiNote("Базовое распознавание (выделены телефон/почта, остальное — в заметки). Для умного разбора добавьте свой API-ключ в настройках (иконка ☰ вверху)."); setAiBusy(false); return; }
+    const prompt=`Ты помощник, который разбирает свободное описание человека по полям карточки контакта.
+Верни СТРОГО валидный JSON и ничего больше — без markdown и пояснений.
+Структура: {"name":"","phone":"","email":"","company":"","position":"","birthday":"","metPlace":"","metWhen":"","level":null,"tags":[],"socials":[{"type":"","value":""}],"notes":""}
+Правила: birthday в формате YYYY-MM-DD если есть полная дата, иначе "". metPlace = где познакомились, metWhen = когда (можно свободным текстом). level = близость 1-6 (1=знаю по имени,2=знакомый,3=приятель,4=хороший знакомый,5=друг,6=близкий человек), если неясно null. socials[].type из: ${SOCIAL_TYPES.join(", ")}. tags — короткие ярлыки. notes — всё прочее важное. Пустое оставляй "" или [].
+Описание: "${text}"`;
+    try {
+      const resp=await fetch("https://api.anthropic.com/v1/messages",{ method:"POST",
+        headers:{ "content-type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true" },
+        body:JSON.stringify({ model:MODEL, max_tokens:1024, messages:[{role:"user",content:prompt}] }) });
+      const data=await resp.json();
+      if(data.error){ throw new Error(data.error.message||"API error"); }
+      const raw=(data.content||[]).map(b=>b.type==="text"?b.text:"").join("").trim();
+      const clean=raw.replace(/```json|```/g,"").trim();
+      applyParsed(JSON.parse(clean)); setAiText("");
+    } catch(e){ applyParsed(localParse(text)); setAiNote("Не удалось обратиться к ИИ ("+(e.message||e)+"). Сделал базовый разбор. Проверьте API-ключ в настройках."); }
+    setAiBusy(false);
+  };
+
+  const pickPhoto=async(e)=>{ const file=e.target.files&&e.target.files[0]; if(!file) return; try{ const d=await compressImage(file); setForm(f=>({...f,photo:d})); }catch(_){} e.target.value=""; };
+  const saveKey=async()=>{ const k=keyDraft.trim(); setApiKey(k); if(k) await storage.set(KEY_STORE,k); else await storage.delete(KEY_STORE); setShowSettings(false); };
+
+  const exportCSV=()=>{ const cols=["Имя","Телефон","Email","Компания","Должность","День рождения","Где познакомились","Когда познакомились","Уровень","Теги","Соцсети","Заметки"];
+    const esc=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+    const rows=contacts.map(c=>[c.name,c.phone,c.email,c.company,c.position,c.birthday,c.metPlace,c.metWhen,c.level?c.level+" ("+(levelInfo(c.level)||{}).label+")":"",(c.tags||[]).join("; "),(c.socials||[]).map(s=>s.type+": "+s.value).join("; "),c.notes].map(esc).join(","));
+    const csv="\uFEFF"+[cols.map(esc).join(","),...rows].join("\n");
+    const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
+    const a=document.createElement("a"); a.href=url; a.download="контакты.csv"; a.click(); URL.revokeObjectURL(url);
+  };
+  const importCSV=(e)=>{ const file=e.target.files&&e.target.files[0]; if(!file) return; const reader=new FileReader();
+    reader.onload=()=>{ try{ const text=String(reader.result).replace(/^\uFEFF/,""); const lines=text.split(/\r?\n/).filter(l=>l.trim());
+      const parse=(line)=>{ const o=[]; let cur="",q=false; for(let i=0;i<line.length;i++){ const ch=line[i]; if(q){ if(ch==='"'&&line[i+1]==='"'){cur+='"';i++;} else if(ch==='"') q=false; else cur+=ch; } else { if(ch==='"') q=true; else if(ch===","){o.push(cur);cur="";} else cur+=ch; } } o.push(cur); return o; };
+      const imp=lines.slice(1).map(line=>{ const f=parse(line); const lv=parseInt(f[8]);
+        return { id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), name:f[0]||"",phone:f[1]||"",email:f[2]||"",company:f[3]||"",position:f[4]||"",birthday:f[5]||"",metPlace:f[6]||"",metWhen:f[7]||"",level:lv>=1&&lv<=6?lv:null,tags:(f[9]||"").split(";").map(t=>t.trim()).filter(Boolean),socials:(f[10]||"").split(";").map(s=>{const[t,...r]=s.split(":");return{type:(t||"Другое").trim(),value:r.join(":").trim()};}).filter(s=>s.value),notes:f[11]||"" };
+      }).filter(c=>c.name);
+      if(imp.length) persist([...contacts,...imp]);
+    }catch(err){ console.error(err); } e.target.value=""; };
+    reader.readAsText(file);
+  };
+
+  const viewing=contacts.find(c=>c.id===viewId);
+  const setF=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const updSocial=(i,k,v)=>setForm(f=>({...f,socials:f.socials.map((s,j)=>j===i?{...s,[k]:v}:s)}));
+  const addSocial=()=>setForm(f=>({...f,socials:[...f.socials,{type:"Telegram",value:""}]}));
+  const rmSocial=(i)=>setForm(f=>({...f,socials:f.socials.filter((_,j)=>j!==i)}));
+
+  return (
+    <div className="cb-root">
+      <div className="cb-wrap">
+        <header className="cb-head">
+          <div>
+            <h1 className="cb-title">Мои контакты</h1>
+            <div className="cb-sub"><Ic name="users" size={14}/> {contacts.length} {plural(contacts.length)}</div>
+          </div>
+          <div className="cb-actions">
+            <button className="cb-btn cb-btn-ghost" onClick={()=>setShowStats(true)} title="Статистика"><Ic name="chart" size={16}/></button>
+            <button className="cb-btn cb-btn-ghost" onClick={()=>{setKeyDraft(apiKey);setShowSettings(true);}} title="Настройки"><Ic name="settings" size={16}/></button>
+            <button className="cb-btn cb-btn-ghost" onClick={()=>fileRef.current.click()} title="Импорт CSV"><Ic name="download" size={16}/><span style={{transform:"scaleY(-1)",display:"inline-block",marginLeft:-4}}></span></button>
+            <button className="cb-btn cb-btn-ghost" onClick={exportCSV} title="Экспорт CSV" disabled={!contacts.length}><Ic name="download" size={16}/></button>
+            <button className="cb-btn cb-btn-primary" onClick={openAdd}><Ic name="plus" size={17}/> Добавить</button>
+            <input ref={fileRef} type="file" accept=".csv" onChange={importCSV} style={{display:"none"}}/>
+          </div>
+        </header>
+
+        {loading ? <div className="cb-loading"><Ic name="loader" size={24} cls="cb-spin"/></div>
+          : contacts.length===0 ? (
+            <div className="cb-empty">
+              <div className="cb-empty-ico"><Ic name="user" size={30}/></div>
+              <h3>Здесь пока пусто</h3>
+              <p>Добавьте первый контакт — можно просто наговорить о человеке голосом, и ИИ сам всё разложит по полям.</p>
+              <button className="cb-btn cb-btn-primary" onClick={openAdd} style={{margin:"0 auto"}}><Ic name="plus" size={17}/> Добавить первый контакт</button>
+            </div>
+          ) : (
+            <>
+              <div className="cb-search">
+                <Ic name="search" size={18}/><input placeholder="Поиск по имени, компании, заметкам…" value={search} onChange={e=>setSearch(e.target.value)}/>
+                {search && <span onClick={()=>setSearch("")} style={{cursor:"pointer",display:"flex"}}><Ic name="x" size={16}/></span>}
+              </div>
+              {allTags.length>0 && (
+                <div className="cb-tags">
+                  <button className={"cb-chip"+(!activeTag?" active":"")} onClick={()=>setActiveTag(null)}>Все</button>
+                  {allTags.map(t=><button key={t} className={"cb-chip"+(activeTag===t?" active":"")} onClick={()=>setActiveTag(activeTag===t?null:t)}>{t}</button>)}
+                </div>
+              )}
+              {upcoming.length>0 && !search && !activeTag && (
+                <div className="cb-bday-banner">
+                  <h4><Ic name="cake" size={15}/> Скоро дни рождения</h4>
+                  {upcoming.map(({c,d})=>(<div key={c.id} className="cb-bday-item" onClick={()=>setViewId(c.id)}><span style={{fontWeight:500}}>{c.name}</span><b>{d===0?"сегодня!":d===1?"завтра":"через "+d+" "+pluralDays(d)}</b></div>))}
+                </div>
+              )}
+              {grouped.length===0 ? <div className="cb-empty"><p style={{marginTop:40}}>Ничего не нашлось.</p></div>
+                : grouped.map(([letter,items])=>(
+                  <div key={letter}>
+                    <div className="cb-letter">{letter}</div>
+                    {items.map(c=>{ const d=daysUntilBirthday(c.birthday); const ph=photos[c.id]; const li=levelInfo(c.level);
+                      return (
+                        <div key={c.id} className="cb-card" onClick={()=>setViewId(c.id)}>
+                          <div className="cb-avatar" style={ph?{backgroundImage:"url("+ph+")"}:{background:colorFor(c.name)}}>{!ph&&initials(c.name)}</div>
+                          <div className="cb-card-main"><div className="cb-card-name">{c.name}</div><div className="cb-card-meta">{[c.position,c.company].filter(Boolean).join(" · ")||c.phone||c.email||"—"}</div></div>
+                          <div className="cb-card-right">
+                            {d!==null&&d<=7 && <div className="cb-card-bday"><Ic name="cake" size={11}/> {d===0?"сегодня":d+"д"}</div>}
+                            {li && <div className="cb-bars" title={li.label}>{[1,2,3,4,5,6].map(i=><div key={i} className="cb-bar" style={i<=c.level?{background:li.color}:{}}/>)}</div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+            </>
+          )}
+      </div>
+
+      {/* DETAIL */}
+      {viewing && (()=>{ const ph=photos[viewing.id]; const li=levelInfo(viewing.level); return (
+        <div className="cb-overlay" onClick={()=>setViewId(null)}>
+          <div className="cb-modal" onClick={e=>e.stopPropagation()}>
+            <div className="cb-modal-head">
+              <button className="cb-iconbtn" onClick={()=>setViewId(null)}><Ic name="chevronLeft" size={20}/></button>
+              <div style={{display:"flex",gap:8}}>
+                <button className="cb-iconbtn" onClick={()=>openEdit(viewing)}><Ic name="pencil" size={16}/></button>
+                <button className="cb-iconbtn" onClick={()=>setConfirmId(viewing.id)}><Ic name="trash" size={16}/></button>
+              </div>
+            </div>
+            <div className="cb-modal-body">
+              <div className="cb-detail-top">
+                <div className="cb-detail-avatar" style={ph?{backgroundImage:"url("+ph+")"}:{background:colorFor(viewing.name)}}>{!ph&&initials(viewing.name)}</div>
+                <div className="cb-detail-name">{viewing.name}</div>
+                {(viewing.position||viewing.company) && <div className="cb-detail-role">{[viewing.position,viewing.company].filter(Boolean).join(" · ")}</div>}
+                {li && <div className="cb-level-badge" style={{background:li.color+"22",color:li.color}}><span className="cb-bars">{[1,2,3,4,5,6].map(i=><span key={i} className="cb-bar" style={Object.assign({height:12},i<=viewing.level?{background:li.color}:{})}/>)}</span>{li.label}</div>}
+                {(viewing.tags||[]).length>0 && <div className="cb-detail-tags">{viewing.tags.map(t=><span key={t} className="cb-detail-tag">{t}</span>)}</div>}
+              </div>
+              <div className="cb-info">
+                {viewing.phone && <a className="cb-info-row" href={"tel:"+viewing.phone}><div className="cb-info-ico"><Ic name="phone" size={17}/></div><div><div className="cb-info-label">Телефон</div><div className="cb-info-val">{viewing.phone}</div></div></a>}
+                {viewing.email && <a className="cb-info-row" href={"mailto:"+viewing.email}><div className="cb-info-ico"><Ic name="mail" size={17}/></div><div><div className="cb-info-label">Email</div><div className="cb-info-val">{viewing.email}</div></div></a>}
+                {viewing.company && <div className="cb-info-row"><div className="cb-info-ico"><Ic name="building" size={17}/></div><div><div className="cb-info-label">Компания</div><div className="cb-info-val">{viewing.company}</div></div></div>}
+                {viewing.metPlace && <div className="cb-info-row"><div className="cb-info-ico"><Ic name="mapPin" size={17}/></div><div><div className="cb-info-label">Где познакомились</div><div className="cb-info-val">{viewing.metPlace}</div></div></div>}
+                {viewing.metWhen && <div className="cb-info-row"><div className="cb-info-ico"><Ic name="calHeart" size={17}/></div><div><div className="cb-info-label">Когда познакомились</div><div className="cb-info-val">{viewing.metWhen}</div></div></div>}
+                {viewing.birthday && <div className="cb-info-row"><div className="cb-info-ico"><Ic name="cake" size={17}/></div><div><div className="cb-info-label">День рождения</div><div className="cb-info-val">{formatBirthday(viewing.birthday)}</div></div></div>}
+                {(viewing.socials||[]).map((s,i)=><div className="cb-info-row" key={i}><div className="cb-info-ico"><Ic name="send" size={16}/></div><div><div className="cb-info-label">{s.type}</div><div className="cb-info-val">{s.value}</div></div></div>)}
+              </div>
+              {viewing.notes && <div style={{marginTop:20}}><div className="cb-info-label" style={{marginBottom:8,display:"flex",alignItems:"center",gap:6}}><Ic name="note" size={13}/> Заметки</div><div className="cb-note-box">{viewing.notes}</div></div>}
+            </div>
+          </div>
+        </div>
+      ); })()}
+
+      {/* FORM */}
+      {showForm && (
+        <div className="cb-overlay" onClick={()=>setShowForm(false)}>
+          <div className="cb-modal" onClick={e=>e.stopPropagation()}>
+            <div className="cb-modal-head"><h2>{editId?"Редактировать":"Новый контакт"}</h2><button className="cb-iconbtn" onClick={()=>setShowForm(false)}><Ic name="x" size={18}/></button></div>
+            <div className="cb-modal-body">
+              <div className="cb-ai">
+                <h3><Ic name="sparkles" size={16}/> Заполнить голосом или текстом</h3>
+                <p>Расскажите о человеке свободно: «Познакомился с Аней Смирновой на конференции в Москве в марте, дизайнер в Озоне, классная, её телеграм eney». ИИ разложит по полям.</p>
+                <textarea className="cb-ai-text" value={aiText} onChange={e=>setAiText(e.target.value)} placeholder={recording?"Слушаю…":"Наговорите или напечатайте…"}/>
+                <div className="cb-ai-row">
+                  {speechOK && <button className={"cb-mic"+(recording?" rec":"")} onClick={toggleRec}>{recording?<Ic name="square" size={20}/>:<Ic name="mic" size={22}/>}</button>}
+                  <button className="cb-ai-go" onClick={aiFill} disabled={aiBusy||!aiText.trim()}>{aiBusy?<><Ic name="loader" size={16} cls="cb-spin"/> Разбираю…</>:<><Ic name="sparkles" size={16}/> Распознать и заполнить</>}</button>
+                </div>
+                {aiNote && <div className="cb-ai-note">{aiNote}</div>}
+              </div>
+
+              <div className="cb-field"><label>Фото</label>
+                <div className="cb-photo-pick">
+                  <div className="cb-photo-prev" style={form.photo?{backgroundImage:"url("+form.photo+")"}:{}}>{!form.photo&&<Ic name="user" size={26}/>}</div>
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                    <button className="cb-btn cb-btn-ghost" onClick={()=>photoRef.current.click()}><Ic name="camera" size={16}/> {form.photo?"Заменить":"Добавить фото"}</button>
+                    {form.photo && <button className="cb-btn cb-btn-ghost" onClick={()=>setF("photo","")}><Ic name="x" size={16}/> Убрать</button>}
+                  </div>
+                  <input ref={photoRef} type="file" accept="image/*" onChange={pickPhoto} style={{display:"none"}}/>
+                </div>
+              </div>
+
+              <div className="cb-field"><label>Имя *</label><input className="cb-input" value={form.name} onChange={e=>setF("name",e.target.value)} placeholder="Иван Петров"/></div>
+              <div className="cb-row2">
+                <div className="cb-field"><label>Телефон</label><input className="cb-input" inputMode="tel" value={form.phone} onChange={e=>setF("phone",e.target.value)} placeholder="+7 999 123-45-67"/></div>
+                <div className="cb-field"><label>Email</label><input className="cb-input" inputMode="email" value={form.email} onChange={e=>setF("email",e.target.value)}/></div>
+              </div>
+              <div className="cb-row2">
+                <div className="cb-field"><label>Компания</label><input className="cb-input" value={form.company} onChange={e=>setF("company",e.target.value)}/></div>
+                <div className="cb-field"><label>Должность</label><input className="cb-input" value={form.position} onChange={e=>setF("position",e.target.value)}/></div>
+              </div>
+              <div className="cb-row2">
+                <div className="cb-field"><label>Где познакомились</label><input className="cb-input" value={form.metPlace} onChange={e=>setF("metPlace",e.target.value)} placeholder="Конференция, через друзей…"/></div>
+                <div className="cb-field"><label>Когда познакомились</label><input className="cb-input" value={form.metWhen} onChange={e=>setF("metWhen",e.target.value)} placeholder="Март 2023 / недавно"/></div>
+              </div>
+              <div className="cb-field"><label>Уровень отношений</label>
+                <div className="cb-levels">{LEVELS.map(l=>(<button key={l.n} className="cb-level-seg" onClick={()=>setF("level",form.level===l.n?null:l.n)} style={form.level&&form.level>=l.n?{background:l.color,borderColor:l.color,color:"#fff"}:{}}>{l.n}</button>))}</div>
+                <div className="cb-level-label">{form.level?levelInfo(form.level).label:"Не выбран"}</div>
+              </div>
+              <div className="cb-field"><label>День рождения</label><input className="cb-input" type="date" value={form.birthday} onChange={e=>setF("birthday",e.target.value)}/></div>
+              <div className="cb-field"><label>Теги (через запятую)</label><input className="cb-input" value={form.tagsStr} onChange={e=>setF("tagsStr",e.target.value)} placeholder="друзья, работа, важное"/></div>
+              <div className="cb-field"><label>Соцсети и мессенджеры</label>
+                {form.socials.map((s,i)=>(<div className="cb-social-row" key={i}>
+                  <select className="cb-select" value={s.type} onChange={e=>updSocial(i,"type",e.target.value)}>{SOCIAL_TYPES.map(t=><option key={t}>{t}</option>)}</select>
+                  <input className="cb-input" value={s.value} onChange={e=>updSocial(i,"value",e.target.value)} placeholder="@username / ссылка"/>
+                  <button className="cb-iconbtn" onClick={()=>rmSocial(i)}><Ic name="x" size={15}/></button>
+                </div>))}
+                <button className="cb-add-social" onClick={addSocial}><Ic name="plus" size={14}/> Добавить соцсеть</button>
+              </div>
+              <div className="cb-field"><label>Заметки</label><textarea className="cb-textarea" value={form.notes} onChange={e=>setF("notes",e.target.value)} placeholder="Важные детали, темы для разговора…"/></div>
+              <div className="cb-form-actions">
+                <button className="cb-btn cb-btn-ghost" style={{flex:1}} onClick={()=>setShowForm(false)}>Отмена</button>
+                <button className="cb-btn cb-btn-primary" onClick={saveContact} disabled={!form.name.trim()}><Ic name="check" size={16}/> {editId?"Сохранить":"Добавить"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STATS */}
+      {showStats && (
+        <div className="cb-overlay" onClick={()=>setShowStats(false)}>
+          <div className="cb-modal" onClick={e=>e.stopPropagation()}>
+            <div className="cb-modal-head"><h2>Статистика</h2><button className="cb-iconbtn" onClick={()=>setShowStats(false)}><Ic name="x" size={18}/></button></div>
+            <div className="cb-modal-body">
+              <div className="cb-stat-hero">
+                <div className="cb-stat-card"><div className="cb-stat-num">{contacts.length}</div><div className="cb-stat-lab">всего контактов</div></div>
+                <div className="cb-stat-card"><div className="cb-stat-num" style={{color:"#8C2E20"}}>{stats.close}</div><div className="cb-stat-lab">близкий круг (друзья и близкие)</div></div>
+                <div className="cb-stat-card"><div className="cb-stat-num">{stats.withPhoto}</div><div className="cb-stat-lab">с фотографией</div></div>
+                <div className="cb-stat-card"><div className="cb-stat-num" style={{color:"#B85335"}}>{stats.bdays}</div><div className="cb-stat-lab">дней рождения в ближайший месяц</div></div>
+              </div>
+              <div className="cb-stat-sec">По уровню отношений</div>
+              {LEVELS.slice().reverse().map(l=>{ const ct=stats.byLevel[l.n]; return (
+                <div className="cb-lvl-row" key={l.n}>
+                  <div className="cb-lvl-name">{l.label}</div>
+                  <div className="cb-lvl-track"><div className="cb-lvl-fill" style={{width:(ct/stats.maxLvl*100)+"%",background:l.color}}/></div>
+                  <div className="cb-lvl-ct">{ct}</div>
+                </div>
+              ); })}
+              {stats.topTags.length>0 && <><div className="cb-stat-sec">Популярные теги</div>
+                <div className="cb-tagstat">{stats.topTags.map(([t,c])=><span key={t}>{t} <b>{c}</b></span>)}</div></>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SETTINGS */}
+      {showSettings && (
+        <div className="cb-overlay" onClick={()=>setShowSettings(false)}>
+          <div className="cb-modal" onClick={e=>e.stopPropagation()}>
+            <div className="cb-modal-head"><h2>Настройки</h2><button className="cb-iconbtn" onClick={()=>setShowSettings(false)}><Ic name="x" size={18}/></button></div>
+            <div className="cb-modal-body">
+              <div className="cb-set-note">
+                Для <b>умного голосового разбора</b> приложение обращается к модели Claude напрямую с вашим ключом. Получить ключ можно в консоли Anthropic: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Ключ хранится только на этом устройстве и никуда больше не передаётся. Без ключа голосовой ввод тоже работает, но разбирает проще (выделяет телефон и почту).
+              </div>
+              <div className="cb-field"><label>Anthropic API-ключ</label>
+                <input className="cb-input" type="password" value={keyDraft} onChange={e=>setKeyDraft(e.target.value)} placeholder="sk-ant-..."/>
+              </div>
+              <div className="cb-form-actions">
+                <button className="cb-btn cb-btn-ghost" style={{flex:1}} onClick={()=>{setKeyDraft("");}}>Очистить</button>
+                <button className="cb-btn cb-btn-primary" onClick={saveKey}><Ic name="check" size={16}/> Сохранить</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM */}
+      {confirmId && (
+        <div className="cb-overlay" style={{alignItems:"center"}} onClick={()=>setConfirmId(null)}>
+          <div className="cb-confirm" onClick={e=>e.stopPropagation()}>
+            <h3>Удалить контакт?</h3><p>Это действие нельзя отменить.</p>
+            <div className="cb-confirm-actions">
+              <button className="cb-btn cb-btn-ghost" onClick={()=>setConfirmId(null)}>Отмена</button>
+              <button className="cb-btn cb-btn-danger" onClick={()=>deleteContact(confirmId)}>Удалить</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+<script>
+/* Регистрируем service worker — работает только при размещении по https (или localhost) */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
