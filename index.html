@@ -13,6 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -144,6 +145,22 @@ html, body { background:#F4EEE3; }
 .cb-set-note { font-size:13px; color:var(--ink-soft); line-height:1.5; margin-bottom:16px; }
 .cb-set-note a { color:var(--accent); }
 .cb-link { color:var(--accent); cursor:pointer; text-decoration:underline; }
+/* graph */
+.cb-graph-overlay { position:fixed; inset:0; background:var(--paper); z-index:60; display:flex; flex-direction:column; }
+.cb-graph-top { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line); background:var(--paper); z-index:2; }
+.cb-graph-top h2 { font-family:'Fraunces',serif; font-size:20px; font-weight:600; }
+.cb-graph-stage { flex:1; position:relative; overflow:hidden; touch-action:none; }
+.cb-graph-svg { width:100%; height:100%; display:block; }
+.cb-graph-ctrl { position:absolute; right:14px; bottom:18px; display:flex; flex-direction:column; gap:8px; z-index:3; }
+.cb-zbtn { width:46px; height:46px; border-radius:50%; border:1px solid var(--line-2); background:var(--card); color:var(--ink); font-size:22px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(34,28,21,0.08); }
+.cb-zbtn:active { background:var(--paper-2); }
+.cb-graph-legend { position:absolute; left:14px; bottom:18px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:11.5px; color:var(--ink-soft); z-index:3; max-width:55%; }
+.cb-graph-legend .lg-row { display:flex; align-items:center; gap:6px; margin-top:3px; }
+.cb-graph-legend .lg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.cb-graph-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:30px; color:var(--ink-soft); font-size:14px; }
+.cb-gnode-label { font-family:'Instrument Sans',sans-serif; font-size:11px; fill:var(--ink); paint-order:stroke; stroke:var(--paper); stroke-width:3px; stroke-linejoin:round; pointer-events:none; }
+.cb-gtag-label { font-family:'Instrument Sans',sans-serif; font-size:10.5px; font-weight:600; fill:var(--accent-deep); pointer-events:none; }
+.cb-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:12px 18px; border-radius:100px; font-size:13.5px; z-index:80; box-shadow:0 6px 24px rgba(34,28,21,0.25); max-width:90%; text-align:center; animation:cbFade .2s ease; }
 </style>
 </head>
 <body>
@@ -210,6 +227,8 @@ const PATHS = {
   square:<rect x="6" y="6" width="12" height="12" rx="2"/>,
   settings:<><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2.2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2.2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2.2"/></>,
   chart:<><rect x="4" y="11" width="3.5" height="9" rx="1"/><rect x="10.2" y="5" width="3.5" height="15" rx="1"/><rect x="16.5" y="14" width="3.5" height="6" rx="1"/></>,
+  network:<><circle cx="12" cy="5" r="2.4"/><circle cx="5" cy="18" r="2.4"/><circle cx="19" cy="18" r="2.4"/><line x1="12" y1="7.4" x2="6.5" y2="15.8"/><line x1="12" y1="7.4" x2="17.5" y2="15.8"/><line x1="7.4" y1="18" x2="16.6" y2="18"/></>,
+  userPlus:<><path d="M15 21a6 6 0 0 0-12 0"/><circle cx="9" cy="8" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></>,
 };
 function Ic({name, size=18, cls}){
   return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{PATHS[name]}</svg>;
@@ -230,6 +249,105 @@ function compressImage(file){
 
 const emptyForm = { name:"",phone:"",email:"",company:"",position:"",birthday:"",metPlace:"",metWhen:"",level:null,notes:"",tagsStr:"",socials:[],photo:"" };
 
+function GraphView({contacts, photos, onClose}){
+  const stageRef=useRef(null), svgRef=useRef(null), zoomRef=useRef(null), simRef=useRef(null);
+  useEffect(()=>{
+    if(typeof d3==="undefined"||!stageRef.current) return;
+    const stage=stageRef.current; const W=stage.clientWidth||360, H=stage.clientHeight||500;
+    const svg=d3.select(svgRef.current).attr("viewBox",[0,0,W,H]);
+    svg.selectAll("*").remove();
+    const g=svg.append("g");
+
+    const tagSet={}; contacts.forEach(c=>(c.tags||[]).forEach(t=>{ tagSet[t]=(tagSet[t]||0)+1; }));
+    const personNodes=contacts.map(c=>({ id:"p"+c.id, type:"person", name:c.name, level:c.level||0,
+      color:c.level?levelInfo(c.level).color:"#B0A695", r:c.level?9+c.level*1.7:10, photo:photos[c.id]||"" }));
+    const tagNodes=Object.keys(tagSet).map(t=>({ id:"t"+t, type:"tag", tag:t }));
+    const nodes=[...personNodes,...tagNodes];
+    const links=[]; contacts.forEach(c=>(c.tags||[]).forEach(t=>links.push({source:"p"+c.id,target:"t"+t})));
+
+    const defs=svg.append("defs");
+    personNodes.filter(n=>n.photo).forEach(n=>{
+      const p=defs.append("pattern").attr("id","img-"+n.id).attr("width",1).attr("height",1).attr("patternContentUnits","objectBoundingBox");
+      p.append("image").attr("href",n.photo).attr("width",1).attr("height",1).attr("preserveAspectRatio","xMidYMid slice");
+    });
+
+    const link=g.append("g").attr("stroke","#C9BCA6").attr("stroke-opacity",0.7)
+      .selectAll("line").data(links).join("line").attr("stroke-width",1.3);
+    const node=g.append("g").selectAll("g").data(nodes).join("g").style("cursor","pointer");
+
+    const tagN=node.filter(d=>d.type==="tag");
+    tagN.append("rect").attr("rx",9).attr("height",18).attr("fill","#EBE2D2").attr("stroke","#D8CBB4");
+    tagN.append("text").attr("class","cb-gtag-label").attr("text-anchor","middle").attr("dy","0.32em").text(d=>d.tag);
+    tagN.each(function(d){ const t=d3.select(this).select("text"); const w=(t.node().getComputedTextLength()||30)+18; d3.select(this).select("rect").attr("width",w).attr("x",-w/2).attr("y",-9); d.w=w; });
+
+    const personN=node.filter(d=>d.type==="person");
+    personN.append("circle").attr("r",d=>d.r).attr("fill",d=>d.photo?"url(#img-"+d.id+")":d.color).attr("stroke","#FBF8F1").attr("stroke-width",2);
+    personN.filter(d=>!d.photo).append("text").attr("text-anchor","middle").attr("dy","0.34em").attr("fill","#FBF8F1").attr("font-family","Fraunces, serif").attr("font-weight",600).attr("font-size",d=>d.r*0.82).text(d=>initials(d.name));
+    personN.append("text").attr("class","cb-gnode-label").attr("text-anchor","middle").attr("dy",d=>d.r+12).text(d=>d.name.split(/\s+/)[0]);
+
+    const sim=d3.forceSimulation(nodes)
+      .force("link",d3.forceLink(links).id(d=>d.id).distance(46).strength(0.25))
+      .force("charge",d3.forceManyBody().strength(-130))
+      .force("center",d3.forceCenter(W/2,H/2))
+      .force("collide",d3.forceCollide(d=>(d.type==="tag"?(d.w||40)/2:d.r)+8))
+      .force("x",d3.forceX(W/2).strength(0.04)).force("y",d3.forceY(H/2).strength(0.04));
+    simRef.current=sim;
+    sim.on("tick",()=>{
+      link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+      node.attr("transform",d=>"translate("+d.x+","+d.y+")");
+    });
+
+    const drag=d3.drag()
+      .on("start",(e,d)=>{ if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on("drag",(e,d)=>{ d.fx=e.x; d.fy=e.y; })
+      .on("end",(e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; });
+    node.call(drag);
+
+    const adj={}; links.forEach(l=>{ (adj[l.source]=adj[l.source]||new Set()).add(l.target); (adj[l.target]=adj[l.target]||new Set()).add(l.source); });
+    let selected=null;
+    node.on("click",(e,d)=>{ e.stopPropagation();
+      selected=selected===d.id?null:d.id;
+      if(!selected){ node.attr("opacity",1); link.attr("opacity",1); return; }
+      const keep=new Set(adj[d.id]||[]); keep.add(d.id);
+      node.attr("opacity",n=>keep.has(n.id)?1:0.15);
+      link.attr("opacity",l=>((l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id)?1:0.06);
+    });
+    svg.on("click",()=>{ selected=null; node.attr("opacity",1); link.attr("opacity",1); });
+
+    const zoom=d3.zoom().scaleExtent([0.2,4]).on("zoom",(e)=>g.attr("transform",e.transform));
+    zoomRef.current={zoom,svg}; svg.call(zoom);
+    return ()=>{ sim.stop(); };
+  },[]);
+
+  const zoomBy=(k)=>{ const z=zoomRef.current; if(z) z.svg.transition().duration(200).call(z.zoom.scaleBy,k); };
+  const resetZoom=()=>{ const z=zoomRef.current; if(z) z.svg.transition().duration(300).call(z.zoom.transform,d3.zoomIdentity); };
+  const hasD3=typeof d3!=="undefined";
+
+  return (
+    <div className="cb-graph-overlay">
+      <div className="cb-graph-top">
+        <h2>Карта связей</h2>
+        <button className="cb-iconbtn" onClick={onClose}><Ic name="x" size={18}/></button>
+      </div>
+      <div className="cb-graph-stage" ref={stageRef}>
+        <svg className="cb-graph-svg" ref={svgRef}></svg>
+        {!hasD3 && <div className="cb-graph-empty">Не удалось загрузить граф. Откройте приложение онлайн хотя бы раз, чтобы библиотека закэшировалась, и попробуйте снова.</div>}
+        <div className="cb-graph-legend">
+          <div>Точки — люди, чипы — интересы. Линия = общий интерес.</div>
+          <div className="lg-row"><span className="lg-dot" style={{background:"#8C2E20"}}/>ближе — крупнее и темнее</div>
+          <div className="lg-row"><span className="lg-dot" style={{background:"#B0A695"}}/>без уровня — серые</div>
+          <div style={{marginTop:5}}>Тап по человеку — подсветить связи · двумя пальцами зум</div>
+        </div>
+        <div className="cb-graph-ctrl">
+          <button className="cb-zbtn" onClick={()=>zoomBy(1.4)}>+</button>
+          <button className="cb-zbtn" onClick={()=>zoomBy(0.7)}>−</button>
+          <button className="cb-zbtn" style={{fontSize:15}} onClick={resetZoom} title="Сброс">⟳</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App(){
   const [contacts,setContacts]=useState([]);
   const [photos,setPhotos]=useState({});
@@ -243,13 +361,15 @@ function App(){
   const [confirmId,setConfirmId]=useState(null);
   const [showStats,setShowStats]=useState(false);
   const [showSettings,setShowSettings]=useState(false);
+  const [showGraph,setShowGraph]=useState(false);
+  const [toast,setToast]=useState("");
   const [apiKey,setApiKey]=useState("");
   const [keyDraft,setKeyDraft]=useState("");
   const [aiText,setAiText]=useState("");
   const [recording,setRecording]=useState(false);
   const [aiBusy,setAiBusy]=useState(false);
   const [aiNote,setAiNote]=useState("");
-  const recogRef=useRef(null), fileRef=useRef(null), photoRef=useRef(null);
+  const recogRef=useRef(null), fileRef=useRef(null), photoRef=useRef(null), vcfRef=useRef(null);
   const speechOK = typeof window!=="undefined" && (window.SpeechRecognition||window.webkitSpeechRecognition);
 
   useEffect(()=>{ (async()=>{
@@ -357,14 +477,69 @@ function App(){
     const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
     const a=document.createElement("a"); a.href=url; a.download="контакты.csv"; a.click(); URL.revokeObjectURL(url);
   };
-  const importCSV=(e)=>{ const file=e.target.files&&e.target.files[0]; if(!file) return; const reader=new FileReader();
-    reader.onload=()=>{ try{ const text=String(reader.result).replace(/^\uFEFF/,""); const lines=text.split(/\r?\n/).filter(l=>l.trim());
-      const parse=(line)=>{ const o=[]; let cur="",q=false; for(let i=0;i<line.length;i++){ const ch=line[i]; if(q){ if(ch==='"'&&line[i+1]==='"'){cur+='"';i++;} else if(ch==='"') q=false; else cur+=ch; } else { if(ch==='"') q=true; else if(ch===","){o.push(cur);cur="";} else cur+=ch; } } o.push(cur); return o; };
-      const imp=lines.slice(1).map(line=>{ const f=parse(line); const lv=parseInt(f[8]);
-        return { id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), name:f[0]||"",phone:f[1]||"",email:f[2]||"",company:f[3]||"",position:f[4]||"",birthday:f[5]||"",metPlace:f[6]||"",metWhen:f[7]||"",level:lv>=1&&lv<=6?lv:null,tags:(f[9]||"").split(";").map(t=>t.trim()).filter(Boolean),socials:(f[10]||"").split(";").map(s=>{const[t,...r]=s.split(":");return{type:(t||"Другое").trim(),value:r.join(":").trim()};}).filter(s=>s.value),notes:f[11]||"" };
-      }).filter(c=>c.name);
-      if(imp.length) persist([...contacts,...imp]);
-    }catch(err){ console.error(err); } e.target.value=""; };
+  const normPhone=(p)=>String(p||"").replace(/\D/g,"").replace(/^8(?=\d{10}$)/,"7").slice(-10);
+  const mergeImport=(rows)=>{
+    const existPhones=new Set(contacts.map(c=>normPhone(c.phone)).filter(Boolean));
+    const existNames=new Set(contacts.map(c=>c.name.trim().toLowerCase()).filter(Boolean));
+    const seenP=new Set(), seenN=new Set();
+    let added=0, skipped=0;
+    const fresh=[];
+    rows.forEach(r=>{
+      if(!r.name||!r.name.trim()){ return; }
+      const np=normPhone(r.phone), nn=r.name.trim().toLowerCase();
+      const dup=(np&&(existPhones.has(np)||seenP.has(np)))||(!np&&(existNames.has(nn)||seenN.has(nn)));
+      if(dup){ skipped++; return; }
+      if(np) seenP.add(np); else seenN.add(nn);
+      fresh.push({ id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+        name:r.name.trim(),phone:r.phone||"",email:r.email||"",company:r.company||"",position:r.position||"",
+        birthday:r.birthday||"",metPlace:r.metPlace||"",metWhen:r.metWhen||"",level:r.level||null,
+        tags:r.tags||[],socials:r.socials||[],notes:r.notes||"" });
+      added++;
+    });
+    if(fresh.length) persist([...contacts,...fresh]);
+    setToast("Добавлено: "+added+(skipped?" · пропущено дублей: "+skipped:""));
+    setTimeout(()=>setToast(""),3500);
+  };
+
+  function decodeQP(s){ s=s.replace(/=\r?\n/g,""); const b=[]; for(let i=0;i<s.length;i++){ if(s[i]==="="&&/^[0-9A-Fa-f]{2}$/.test(s.substr(i+1,2))){ b.push(parseInt(s.substr(i+1,2),16)); i+=2; } else b.push(s.charCodeAt(i)); } try{ return new TextDecoder("utf-8").decode(new Uint8Array(b)); }catch(e){ return s; } }
+  function parseVCF(text){
+    const cards=text.split(/BEGIN:VCARD/i).slice(1); const out=[];
+    cards.forEach(block=>{
+      const raw=block.split(/\r?\n/); const lines=[];
+      raw.forEach(l=>{ if(/^[ \t]/.test(l)&&lines.length){ lines[lines.length-1]+=l.slice(1); } else lines.push(l); });
+      let fn="",nn="",tel="",email="",org="",title="";
+      lines.forEach(line=>{
+        if(/^END:VCARD/i.test(line)) return;
+        const idx=line.indexOf(":"); if(idx<0) return;
+        const keyRaw=line.slice(0,idx); let val=line.slice(idx+1).trim();
+        const prop=(keyRaw.split(";")[0].split(".").pop()||"").toUpperCase();
+        if(/ENCODING=QUOTED-PRINTABLE/i.test(keyRaw)) val=decodeQP(val);
+        if(prop==="FN"&&!fn) fn=val;
+        else if(prop==="N"&&!nn){ const p=val.split(";"); nn=[p[1],p[0]].filter(Boolean).join(" ").trim(); }
+        else if(prop==="TEL"&&!tel) tel=val.replace(/[^\d+]/g,"");
+        else if(prop==="EMAIL"&&!email) email=val;
+        else if(prop==="ORG"&&!org) org=val.split(";")[0];
+        else if(prop==="TITLE"&&!title) title=val;
+      });
+      const name=(fn||nn).trim();
+      if(name) out.push({name,phone:tel,email,company:org,position:title});
+    });
+    return out;
+  }
+
+  const importFile=(e)=>{ const file=e.target.files&&e.target.files[0]; if(!file) return; const reader=new FileReader();
+    reader.onload=()=>{ try{ const text=String(reader.result);
+      const isVcf=/\.vcf$/i.test(file.name)||/BEGIN:VCARD/i.test(text.slice(0,200));
+      if(isVcf){ mergeImport(parseVCF(text)); }
+      else {
+        const t=text.replace(/^\uFEFF/,""); const lines=t.split(/\r?\n/).filter(l=>l.trim());
+        const parse=(line)=>{ const o=[]; let cur="",q=false; for(let i=0;i<line.length;i++){ const ch=line[i]; if(q){ if(ch==='"'&&line[i+1]==='"'){cur+='"';i++;} else if(ch==='"') q=false; else cur+=ch; } else { if(ch==='"') q=true; else if(ch===","){o.push(cur);cur="";} else cur+=ch; } } o.push(cur); return o; };
+        const rows=lines.slice(1).map(line=>{ const f=parse(line); const lv=parseInt(f[8]);
+          return { name:f[0]||"",phone:f[1]||"",email:f[2]||"",company:f[3]||"",position:f[4]||"",birthday:f[5]||"",metPlace:f[6]||"",metWhen:f[7]||"",level:lv>=1&&lv<=6?lv:null,tags:(f[9]||"").split(";").map(t=>t.trim()).filter(Boolean),socials:(f[10]||"").split(";").map(s=>{const[ty,...r]=s.split(":");return{type:(ty||"Другое").trim(),value:r.join(":").trim()};}).filter(s=>s.value),notes:f[11]||"" };
+        });
+        mergeImport(rows);
+      }
+    }catch(err){ console.error(err); setToast("Не удалось прочитать файл"); setTimeout(()=>setToast(""),3000); } e.target.value=""; };
     reader.readAsText(file);
   };
 
@@ -383,12 +558,13 @@ function App(){
             <div className="cb-sub"><Ic name="users" size={14}/> {contacts.length} {plural(contacts.length)}</div>
           </div>
           <div className="cb-actions">
+            <button className="cb-btn cb-btn-ghost" onClick={()=>setShowGraph(true)} title="Карта связей" disabled={!contacts.length}><Ic name="network" size={16}/></button>
+            <button className="cb-btn cb-btn-ghost" onClick={()=>fileRef.current.click()} title="Импорт контактов (телефон / vCard / CSV)"><Ic name="userPlus" size={16}/></button>
             <button className="cb-btn cb-btn-ghost" onClick={()=>setShowStats(true)} title="Статистика"><Ic name="chart" size={16}/></button>
             <button className="cb-btn cb-btn-ghost" onClick={()=>{setKeyDraft(apiKey);setShowSettings(true);}} title="Настройки"><Ic name="settings" size={16}/></button>
-            <button className="cb-btn cb-btn-ghost" onClick={()=>fileRef.current.click()} title="Импорт CSV"><Ic name="download" size={16}/><span style={{transform:"scaleY(-1)",display:"inline-block",marginLeft:-4}}></span></button>
             <button className="cb-btn cb-btn-ghost" onClick={exportCSV} title="Экспорт CSV" disabled={!contacts.length}><Ic name="download" size={16}/></button>
             <button className="cb-btn cb-btn-primary" onClick={openAdd}><Ic name="plus" size={17}/> Добавить</button>
-            <input ref={fileRef} type="file" accept=".csv" onChange={importCSV} style={{display:"none"}}/>
+            <input ref={fileRef} type="file" accept=".vcf,.csv,text/vcard,text/csv" onChange={importFile} style={{display:"none"}}/>
           </div>
         </header>
 
@@ -599,6 +775,8 @@ function App(){
           </div>
         </div>
       )}
+      {showGraph && <GraphView contacts={contacts} photos={photos} onClose={()=>setShowGraph(false)}/>}
+      {toast && <div className="cb-toast">{toast}</div>}
     </div>
   );
 }
