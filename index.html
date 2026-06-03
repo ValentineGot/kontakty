@@ -41,6 +41,18 @@ html, body { background:#F4EEE3; }
 .cb-search input { border:none; outline:none; background:transparent; font-family:inherit; font-size:16px; color:var(--ink); width:100%; }
 .cb-tags { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:18px; scrollbar-width:none; }
 .cb-tags::-webkit-scrollbar { display:none; }
+.cb-toolbar { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+.cb-sortrow { display:flex; gap:7px; flex:1; overflow-x:auto; scrollbar-width:none; }
+.cb-sortrow::-webkit-scrollbar { display:none; }
+.cb-filterbtn { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; padding:9px 14px; border-radius:100px; border:1px solid var(--line-2); background:transparent; color:var(--ink-soft); font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; flex-shrink:0; }
+.cb-filterbtn.on { border-color:var(--accent); color:var(--accent); }
+.cb-filterbtn .cb-badge { background:var(--accent); color:#fff; border-radius:100px; min-width:18px; height:18px; padding:0 5px; font-size:11px; display:inline-flex; align-items:center; justify-content:center; }
+.cb-activefilters { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px; }
+.cb-afilter { display:inline-flex; align-items:center; gap:7px; background:var(--paper-2); border-radius:100px; padding:6px 8px 6px 13px; font-size:12.5px; color:var(--ink); }
+.cb-afilter button { border:none; background:rgba(34,28,21,0.10); width:19px; height:19px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-soft); }
+.cb-sheet-sec { font-size:12px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; margin:20px 0 9px; }
+.cb-sheet-sec:first-child { margin-top:2px; }
+.cb-chiprow { display:flex; flex-wrap:wrap; gap:8px; }
 .cb-chip { white-space:nowrap; cursor:pointer; font-size:13px; font-weight:500; padding:8px 14px; border-radius:100px; border:1px solid var(--line-2); background:transparent; color:var(--ink-soft); font-family:inherit; }
 .cb-chip.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
 .cb-bday-banner { background:linear-gradient(100deg,#F6E4D0,#F2D9C2); border:1px solid rgba(184,83,53,0.25); border-radius:14px; padding:14px 16px; margin-bottom:18px; }
@@ -262,6 +274,7 @@ const PATHS = {
   image:<><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></>,
   arrowRight:<><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></>,
   arrowLeft:<><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></>,
+  filter:<path d="M3 4h18l-7 8v7l-4 2v-9z"/>,
 };
 function Ic({name, size=18, cls}){
   return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{PATHS[name]}</svg>;
@@ -401,6 +414,10 @@ function App(){
   const [loading,setLoading]=useState(true);
   const [search,setSearch]=useState("");
   const [activeTag,setActiveTag]=useState(null);
+  const [sortBy,setSortBy]=useState("name");
+  const [activeLevel,setActiveLevel]=useState(null);
+  const [activeCompany,setActiveCompany]=useState(null);
+  const [showFilters,setShowFilters]=useState(false);
   const [showForm,setShowForm]=useState(false);
   const [form,setForm]=useState(emptyForm);
   const [editId,setEditId]=useState(null);
@@ -473,11 +490,29 @@ function App(){
   };
 
   const allTags=useMemo(()=>{ const s=new Set(); contacts.forEach(c=>(c.tags||[]).forEach(t=>s.add(t))); return [...s].sort((a,b)=>a.localeCompare(b,"ru")); },[contacts]);
+  const companies=useMemo(()=>{ const s=new Set(); contacts.forEach(c=>{ if(c.company&&c.company.trim()) s.add(c.company.trim()); }); return [...s].sort((a,b)=>a.localeCompare(b,"ru")); },[contacts]);
+  const activeFilterCount=(activeLevel?1:0)+(activeCompany?1:0);
   const filtered=useMemo(()=>{ const q=search.trim().toLowerCase();
-    return contacts.filter(c=>{ if(activeTag&&!(c.tags||[]).includes(activeTag)) return false; if(!q) return true;
+    const list=contacts.filter(c=>{
+      if(activeTag&&!(c.tags||[]).includes(activeTag)) return false;
+      if(activeLevel&&c.level!==activeLevel) return false;
+      if(activeCompany&&(c.company||"").trim()!==activeCompany) return false;
+      if(!q) return true;
       return [c.name,c.phone,c.email,c.company,c.position,c.notes,c.metPlace,c.metWhen,...(c.tags||[]),...(c.socials||[]).map(s=>s.value)].join(" ").toLowerCase().includes(q);
-    }).sort((a,b)=>a.name.localeCompare(b.name,"ru")); },[contacts,search,activeTag]);
-  const grouped=useMemo(()=>{ const g={}; filtered.forEach(c=>{ const L=(c.name[0]||"#").toUpperCase(); (g[L]=g[L]||[]).push(c); }); return Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0],"ru")); },[filtered]);
+    });
+    if(sortBy==="recent") list.sort((a,b)=>(b.id>a.id?1:b.id<a.id?-1:0));
+    else if(sortBy==="closeness") list.sort((a,b)=>((b.level||0)-(a.level||0))||a.name.localeCompare(b.name,"ru"));
+    else list.sort((a,b)=>a.name.localeCompare(b.name,"ru"));
+    return list;
+  },[contacts,search,activeTag,activeLevel,activeCompany,sortBy]);
+  const grouped=useMemo(()=>{
+    if(sortBy==="recent") return filtered.length?[[null,filtered]]:[];
+    if(sortBy==="closeness"){ const g={}; filtered.forEach(c=>{ const k=c.level?levelInfo(c.level).label:"Без уровня"; (g[k]=g[k]||[]).push(c); });
+      const order=[...LEVELS].reverse().map(l=>l.label).concat("Без уровня");
+      return order.filter(k=>g[k]).map(k=>[k,g[k]]); }
+    const g={}; filtered.forEach(c=>{ const L=(c.name[0]||"#").toUpperCase(); (g[L]=g[L]||[]).push(c); });
+    return Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0],"ru"));
+  },[filtered,sortBy]);
   const upcoming=useMemo(()=>contacts.map(c=>({c,d:daysUntilBirthday(c.birthday)})).filter(x=>x.d!==null&&x.d<=30).sort((a,b)=>a.d-b.d).slice(0,4),[contacts]);
 
   const stats=useMemo(()=>{
@@ -766,22 +801,36 @@ function App(){
                 <Ic name="search" size={18}/><input placeholder="Поиск по имени, компании, заметкам…" value={search} onChange={e=>setSearch(e.target.value)}/>
                 {search && <span onClick={()=>setSearch("")} style={{cursor:"pointer",display:"flex"}}><Ic name="x" size={16}/></span>}
               </div>
+              <div className="cb-toolbar">
+                <div className="cb-sortrow">
+                  <button className={"cb-chip"+(sortBy==="name"?" active":"")} onClick={()=>setSortBy("name")}>А–Я</button>
+                  <button className={"cb-chip"+(sortBy==="recent"?" active":"")} onClick={()=>setSortBy("recent")}>Новые</button>
+                  <button className={"cb-chip"+(sortBy==="closeness"?" active":"")} onClick={()=>setSortBy("closeness")}>Близость</button>
+                </div>
+                <button className={"cb-filterbtn"+(activeFilterCount?" on":"")} onClick={()=>setShowFilters(true)}><Ic name="filter" size={15}/> Фильтры {activeFilterCount>0 && <span className="cb-badge">{activeFilterCount}</span>}</button>
+              </div>
+              {(activeLevel||activeCompany) && (
+                <div className="cb-activefilters">
+                  {activeLevel && <span className="cb-afilter">{levelInfo(activeLevel).label}<button onClick={()=>setActiveLevel(null)}><Ic name="x" size={12}/></button></span>}
+                  {activeCompany && <span className="cb-afilter">{activeCompany}<button onClick={()=>setActiveCompany(null)}><Ic name="x" size={12}/></button></span>}
+                </div>
+              )}
               {allTags.length>0 && (
                 <div className="cb-tags">
                   <button className={"cb-chip"+(!activeTag?" active":"")} onClick={()=>setActiveTag(null)}>Все</button>
                   {allTags.map(t=><button key={t} className={"cb-chip"+(activeTag===t?" active":"")} onClick={()=>setActiveTag(activeTag===t?null:t)}>{t}</button>)}
                 </div>
               )}
-              {upcoming.length>0 && !search && !activeTag && (
+              {upcoming.length>0 && !search && !activeTag && !activeLevel && !activeCompany && sortBy==="name" && (
                 <div className="cb-bday-banner">
                   <h4><Ic name="cake" size={15}/> Скоро дни рождения</h4>
                   {upcoming.map(({c,d})=>(<div key={c.id} className="cb-bday-item" onClick={()=>setViewId(c.id)}><span style={{fontWeight:500}}>{c.name}</span><b>{d===0?"сегодня!":d===1?"завтра":"через "+d+" "+pluralDays(d)}</b></div>))}
                 </div>
               )}
               {grouped.length===0 ? <div className="cb-empty"><p style={{marginTop:40}}>Ничего не нашлось.</p></div>
-                : grouped.map(([letter,items])=>(
-                  <div key={letter}>
-                    <div className="cb-letter">{letter}</div>
+                : grouped.map(([letter,items],gi)=>(
+                  <div key={gi}>
+                    {letter && <div className="cb-letter">{letter}</div>}
                     {items.map(c=>{ const d=daysUntilBirthday(c.birthday); const ph=photos[c.id]; const li=levelInfo(c.level);
                       return (
                         <div key={c.id} className="cb-card" onClick={()=>setViewId(c.id)}>
@@ -967,6 +1016,42 @@ function App(){
                 <button className="cb-btn cb-btn-primary" onClick={exportBackup} disabled={!contacts.length}><Ic name="download" size={16}/> Сохранить копию</button>
               </div>
               <input ref={bkpRef} type="file" accept=".json,application/json" onChange={importBackup} style={{display:"none"}}/>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FILTERS SHEET */}
+      {showFilters && (
+        <div className="cb-overlay" onClick={()=>setShowFilters(false)}>
+          <div className="cb-modal" onClick={e=>e.stopPropagation()}>
+            <div className="cb-modal-head"><h2>Фильтры и сортировка</h2><button className="cb-iconbtn" onClick={()=>setShowFilters(false)}><Ic name="x" size={18}/></button></div>
+            <div className="cb-modal-body">
+              <div className="cb-sheet-sec">Сортировка</div>
+              <div className="cb-chiprow">
+                <button className={"cb-chip"+(sortBy==="name"?" active":"")} onClick={()=>setSortBy("name")}>По имени (А–Я)</button>
+                <button className={"cb-chip"+(sortBy==="recent"?" active":"")} onClick={()=>setSortBy("recent")}>Сначала новые</button>
+                <button className={"cb-chip"+(sortBy==="closeness"?" active":"")} onClick={()=>setSortBy("closeness")}>По близости</button>
+              </div>
+
+              <div className="cb-sheet-sec">Уровень близости</div>
+              <div className="cb-chiprow">
+                <button className={"cb-chip"+(!activeLevel?" active":"")} onClick={()=>setActiveLevel(null)}>Любой</button>
+                {LEVELS.map(l=><button key={l.n} className="cb-chip" onClick={()=>setActiveLevel(activeLevel===l.n?null:l.n)} style={activeLevel===l.n?{background:l.color,borderColor:l.color,color:"#fff"}:{}}>{l.label}</button>)}
+              </div>
+
+              {companies.length>0 && <>
+                <div className="cb-sheet-sec">Компания</div>
+                <select className="cb-input" value={activeCompany||""} onChange={e=>setActiveCompany(e.target.value||null)}>
+                  <option value="">Любая</option>
+                  {companies.map(c=><option key={c} value={c}>{c}</option>)}
+                </select>
+              </>}
+
+              <div className="cb-form-actions">
+                <button className="cb-btn cb-btn-ghost" style={{flex:1}} onClick={()=>{setActiveLevel(null);setActiveCompany(null);setActiveTag(null);setSortBy("name");}}>Сбросить всё</button>
+                <button className="cb-btn cb-btn-primary" onClick={()=>setShowFilters(false)}><Ic name="check" size={16}/> Готово</button>
+              </div>
             </div>
           </div>
         </div>
