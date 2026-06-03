@@ -165,7 +165,7 @@ html, body { background:#F4EEE3; }
 .cb-set-note a { color:var(--accent); }
 .cb-link { color:var(--accent); cursor:pointer; text-decoration:underline; }
 /* graph */
-.cb-graph-overlay { position:fixed; inset:0; background:var(--paper); z-index:60; display:flex; flex-direction:column; }
+.cb-graph-overlay { position:fixed; inset:0; background:var(--paper); z-index:40; display:flex; flex-direction:column; }
 .cb-graph-top { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line); background:var(--paper); z-index:2; }
 .cb-graph-top h2 { font-family:'Fraunces',serif; font-size:20px; font-weight:600; }
 .cb-graph-stage { flex:1; position:relative; overflow:hidden; touch-action:none; }
@@ -282,7 +282,7 @@ function compressImage(file){
 
 const emptyForm = { name:"",phone:"",email:"",company:"",position:"",birthday:"",metPlace:"",metWhen:"",level:null,notes:"",tagsStr:"",socials:[],photo:"" };
 
-function GraphView({contacts, photos, onClose}){
+function GraphView({contacts, photos, onClose, onOpenContact}){
   const stageRef=useRef(null), svgRef=useRef(null), zoomRef=useRef(null), simRef=useRef(null);
   useEffect(()=>{
     if(typeof d3==="undefined"||!stageRef.current) return;
@@ -292,7 +292,7 @@ function GraphView({contacts, photos, onClose}){
     const g=svg.append("g");
 
     const tagSet={}; contacts.forEach(c=>(c.tags||[]).forEach(t=>{ tagSet[t]=(tagSet[t]||0)+1; }));
-    const personNodes=contacts.map(c=>({ id:"p"+c.id, type:"person", name:c.name, level:c.level||0,
+    const personNodes=contacts.map(c=>({ id:"p"+c.id, cid:c.id, type:"person", name:c.name, level:c.level||0,
       color:c.level?levelInfo(c.level).color:"#B0A695", r:c.level?8+c.level*3.2:9, photo:photos[c.id]||"" }));
     const tagNodes=Object.keys(tagSet).map(t=>({ id:"t"+t, type:"tag", tag:t }));
     const nodes=[...personNodes,...tagNodes];
@@ -330,22 +330,26 @@ function GraphView({contacts, photos, onClose}){
       node.attr("transform",d=>"translate("+d.x+","+d.y+")");
     });
 
+    let dragged=false, sx=0, sy=0;
     const drag=d3.drag()
-      .on("start",(e,d)=>{ if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
-      .on("drag",(e,d)=>{ d.fx=e.x; d.fy=e.y; })
+      .on("start",(e,d)=>{ dragged=false; sx=e.x; sy=e.y; if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on("drag",(e,d)=>{ if(Math.abs(e.x-sx)>4||Math.abs(e.y-sy)>4) dragged=true; d.fx=e.x; d.fy=e.y; })
       .on("end",(e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; });
     node.call(drag);
 
     const adj={}; links.forEach(l=>{ (adj[l.source]=adj[l.source]||new Set()).add(l.target); (adj[l.target]=adj[l.target]||new Set()).add(l.source); });
     let selected=null;
+    const clearHi=()=>{ selected=null; node.attr("opacity",1); link.attr("opacity",1); };
     node.on("click",(e,d)=>{ e.stopPropagation();
+      if(dragged) return;
+      if(d.type==="person"){ onOpenContact&&onOpenContact(d.cid); return; }
       selected=selected===d.id?null:d.id;
-      if(!selected){ node.attr("opacity",1); link.attr("opacity",1); return; }
+      if(!selected){ clearHi(); return; }
       const keep=new Set(adj[d.id]||[]); keep.add(d.id);
       node.attr("opacity",n=>keep.has(n.id)?1:0.15);
       link.attr("opacity",l=>((l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id)?1:0.06);
     });
-    svg.on("click",()=>{ selected=null; node.attr("opacity",1); link.attr("opacity",1); });
+    svg.on("click",clearHi);
 
     const zoom=d3.zoom().scaleExtent([0.2,4]).on("zoom",(e)=>g.attr("transform",e.transform));
     zoomRef.current={zoom,svg}; svg.call(zoom);
@@ -360,7 +364,7 @@ function GraphView({contacts, photos, onClose}){
       svg.transition().duration(600).call(zoom.transform,d3.zoomIdentity.translate(tx,ty).scale(scale));
     },900);
     return ()=>{ sim.stop(); };
-  },[]);
+  },[contacts,photos]);
 
   const zoomBy=(k)=>{ const z=zoomRef.current; if(z) z.svg.transition().duration(200).call(z.zoom.scaleBy,k); };
   const resetZoom=()=>{ const z=zoomRef.current; if(z) z.svg.transition().duration(300).call(z.zoom.transform,d3.zoomIdentity); };
@@ -379,7 +383,7 @@ function GraphView({contacts, photos, onClose}){
           <div>Точки — люди, цветные чипы — интересы. Линия = общий интерес.</div>
           <div className="lg-row"><span className="lg-dot" style={{background:"#8C2E20"}}/>ближе — крупнее и темнее</div>
           <div className="lg-row"><span className="lg-dot" style={{background:"#B0A695"}}/>без уровня — серые</div>
-          <div style={{marginTop:5}}>Тап по человеку — подсветить связи · двумя пальцами зум</div>
+          <div style={{marginTop:5}}>Тап по человеку — открыть карточку · по тегу — подсветить · двумя пальцами зум</div>
         </div>
         <div className="cb-graph-ctrl">
           <button className="cb-zbtn" onClick={()=>zoomBy(1.4)}>+</button>
@@ -415,7 +419,7 @@ function App(){
   const [recording,setRecording]=useState(false);
   const [aiBusy,setAiBusy]=useState(false);
   const [aiNote,setAiNote]=useState("");
-  const recogRef=useRef(null), fileRef=useRef(null), photoRef=useRef(null), vcfRef=useRef(null), shotRef=useRef(null);
+  const recogRef=useRef(null), fileRef=useRef(null), photoRef=useRef(null), vcfRef=useRef(null), shotRef=useRef(null), bkpRef=useRef(null);
   const speechOK = typeof window!=="undefined" && (window.SpeechRecognition||window.webkitSpeechRecognition);
 
   useEffect(()=>{ (async()=>{
@@ -429,7 +433,44 @@ function App(){
     setLoading(false);
   })(); },[]);
 
-  const persist=async(next)=>{ setContacts(next); await storage.set(META_KEY,JSON.stringify(next)); };
+  const persist=async(next)=>{ setContacts(next);
+    _mem[META_KEY]=JSON.stringify(next);
+    try { localStorage.setItem(META_KEY,JSON.stringify(next)); }
+    catch(e){ setToast("Мало места в памяти — сделайте бэкап и удалите часть фото"); setTimeout(()=>setToast(""),5000); }
+  };
+
+  const exportBackup=()=>{
+    const data={ app:"contacts-db", version:3, exportedAt:new Date().toISOString(), contacts, photos };
+    const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const d=new Date().toISOString().slice(0,10);
+    const a=document.createElement("a"); a.href=url; a.download="контакты-бэкап-"+d+".json"; a.click(); URL.revokeObjectURL(url);
+    setToast("Бэкап сохранён ("+contacts.length+" "+plural(contacts.length)+")"); setTimeout(()=>setToast(""),3500);
+  };
+  const importBackup=(e)=>{ const file=e.target.files&&e.target.files[0]; if(!file) return; const reader=new FileReader();
+    reader.onload=async()=>{ try{
+      const data=JSON.parse(String(reader.result));
+      if(!data||!Array.isArray(data.contacts)) throw new Error("не похоже на файл бэкапа");
+      const existIds=new Set(contacts.map(c=>c.id));
+      const existPhones=new Set(contacts.map(c=>normPhone(c.phone)).filter(Boolean));
+      const existNames=new Set(contacts.map(c=>c.name.trim().toLowerCase()).filter(Boolean));
+      const fresh=[]; const photoWrites=[]; let added=0, skipped=0;
+      data.contacts.forEach(c=>{ if(!c||!c.name) return;
+        const np=normPhone(c.phone), nn=c.name.trim().toLowerCase();
+        if((np&&existPhones.has(np))||(!np&&existNames.has(nn))){ skipped++; return; }
+        let id=c.id||(Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+        if(existIds.has(id)) id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+        existIds.add(id); if(np) existPhones.add(np); else existNames.add(nn);
+        const ph=data.photos&&c.id?data.photos[c.id]:null;
+        fresh.push({...c,id}); if(ph) photoWrites.push([id,ph]); added++;
+      });
+      if(fresh.length) await persist([...contacts,...fresh]);
+      if(photoWrites.length){ const np={...photos}; for(const [id,ph] of photoWrites){ try{ await storage.set(PHOTO_PREFIX+id,ph); np[id]=ph; }catch(_){} } setPhotos(np); }
+      setShowSettings(false);
+      setToast("Восстановлено: "+added+(skipped?" · пропущено дублей: "+skipped:"")); setTimeout(()=>setToast(""),4000);
+    }catch(err){ setToast("Не удалось прочитать бэкап ("+(err.message||err)+")"); setTimeout(()=>setToast(""),4000); } e.target.value=""; };
+    reader.readAsText(file);
+  };
 
   const allTags=useMemo(()=>{ const s=new Set(); contacts.forEach(c=>(c.tags||[]).forEach(t=>s.add(t))); return [...s].sort((a,b)=>a.localeCompare(b,"ru")); },[contacts]);
   const filtered=useMemo(()=>{ const q=search.trim().toLowerCase();
@@ -918,6 +959,14 @@ function App(){
                 <button className="cb-btn cb-btn-ghost" style={{flex:1}} onClick={()=>{setKeyDraft("");}}>Очистить</button>
                 <button className="cb-btn cb-btn-primary" onClick={saveKey}><Ic name="check" size={16}/> Сохранить</button>
               </div>
+
+              <div className="cb-stat-sec" style={{marginTop:26}}>Резервная копия</div>
+              <div className="cb-set-note">Сохраняет всё одним файлом — контакты и фото. Храните его в облаке или на компьютере: так можно перенести базу на другой телефон или восстановить после очистки браузера. Восстановление добавляет недостающих и пропускает дубли.</div>
+              <div className="cb-form-actions" style={{marginTop:0}}>
+                <button className="cb-btn cb-btn-ghost" style={{flex:1}} onClick={()=>bkpRef.current.click()}><Ic name="download" size={16} style={{transform:"rotate(180deg)"}}/> Восстановить</button>
+                <button className="cb-btn cb-btn-primary" onClick={exportBackup} disabled={!contacts.length}><Ic name="download" size={16}/> Сохранить копию</button>
+              </div>
+              <input ref={bkpRef} type="file" accept=".json,application/json" onChange={importBackup} style={{display:"none"}}/>
             </div>
           </div>
         </div>
@@ -935,7 +984,7 @@ function App(){
           </div>
         </div>
       )}
-      {showGraph && <GraphView contacts={contacts} photos={photos} onClose={()=>setShowGraph(false)}/>}
+      {showGraph && <GraphView contacts={contacts} photos={photos} onClose={()=>setShowGraph(false)} onOpenContact={(id)=>setViewId(id)}/>}
       {toast && <div className="cb-toast">{toast}</div>}
     </div>
   );
