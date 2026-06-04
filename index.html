@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#F4EEE3" />
+<meta name="theme-color" content="#141210" />
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" type="image/png" href="icon-192.png" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -17,14 +17,14 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { background:#F4EEE3; }
+html, body { background:#141210; }
 .cb-root {
-  --paper:#F4EEE3; --paper-2:#EBE2D2; --card:#FBF8F1; --ink:#221C15; --ink-soft:#6B6253;
-  --accent:#B85335; --accent-deep:#8F3D26; --line:rgba(34,28,21,0.10); --line-2:rgba(34,28,21,0.16);
+  --paper:#141210; --paper-2:#1E1B18; --card:#242018; --ink:#F0EAE0; --ink-soft:#9A9080;
+  --accent:#D4724A; --accent-deep:#A85535; --line:rgba(240,234,224,0.09); --line-2:rgba(240,234,224,0.15);
   font-family:'Instrument Sans',system-ui,sans-serif; background:var(--paper); color:var(--ink); min-height:100vh; width:100%; position:relative;
 }
-.cb-root::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.4; z-index:0;
-  background-image:radial-gradient(rgba(34,28,21,0.035) 1px,transparent 1px); background-size:22px 22px; }
+.cb-root::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.25; z-index:0;
+  background-image:radial-gradient(rgba(240,234,224,0.06) 1px,transparent 1px); background-size:22px 22px; }
 .cb-wrap { max-width:760px; margin:0 auto; padding:26px 18px 120px; position:relative; z-index:1; }
 .cb-head { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
 .cb-title { font-family:'Fraunces',serif; font-weight:600; font-size:34px; line-height:1; letter-spacing:-0.02em; }
@@ -63,7 +63,7 @@ html, body { background:#F4EEE3; }
 .cb-letter:first-of-type { margin-top:4px; }
 .cb-card { display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:9px; cursor:pointer; }
 .cb-card:active { background:var(--paper-2); }
-.cb-avatar { flex-shrink:0; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#FBF8F1; font-weight:600; font-size:16px; font-family:'Fraunces',serif; overflow:hidden; background-size:cover; background-position:center; }
+.cb-avatar { flex-shrink:0; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#F0EAE0; font-weight:600; font-size:16px; font-family:'Fraunces',serif; overflow:hidden; background-size:cover; background-position:center; }
 .cb-card-main { flex:1; min-width:0; }
 .cb-card-name { font-weight:600; font-size:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .cb-card-meta { font-size:13px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:1px; }
@@ -99,21 +99,25 @@ html, body { background:#F4EEE3; }
 .cb-add-social { background:transparent; border:1px dashed var(--line-2); color:var(--ink-soft); cursor:pointer; font-family:inherit; font-size:13px; padding:11px; border-radius:11px; width:100%; display:flex; align-items:center; justify-content:center; gap:6px; }
 .cb-form-actions { display:flex; gap:10px; margin-top:22px; }
 .cb-form-actions .cb-btn { flex:1; }
-.cb-ai { background:linear-gradient(125deg,#2B2620,#3A332A); border-radius:16px; padding:16px; margin-bottom:20px; color:#F4EEE3; }
+.cb-ai { background:linear-gradient(125deg,#1A2535,#1E2840); border-radius:16px; padding:16px; margin-bottom:20px; color:#F0EAE0; }
 .cb-ai h3 { font-family:'Fraunces',serif; font-size:16px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-.cb-ai p { font-size:12.5px; color:#C9BFAE; margin-bottom:12px; line-height:1.45; }
-.cb-ai-text { width:100%; font-family:inherit; font-size:15px; color:#F4EEE3; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:11px; padding:12px; outline:none; resize:vertical; min-height:64px; line-height:1.5; }
-.cb-ai-text::placeholder { color:#9A917F; }
+.cb-ai p { font-size:12.5px; color:#8A9EC0; margin-bottom:12px; line-height:1.45; }
+.cb-ai-text { width:100%; font-family:inherit; font-size:15px; color:#F0EAE0; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:11px; padding:12px; outline:none; resize:vertical; min-height:64px; line-height:1.5; }
+.cb-ai-text::placeholder { color:#6A6058; }
 .cb-ai-row { display:flex; gap:8px; margin-top:10px; }
-.cb-mic { flex-shrink:0; width:52px; height:52px; border-radius:50%; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; background:#F4EEE3; color:#2B2620; transition:all .2s; }
+.cb-mic { flex-shrink:0; width:52px; height:52px; border-radius:50%; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.12); color:#F0EAE0; transition:all .2s; }
 .cb-mic.rec { background:var(--accent); color:#fff; animation:pulse 1.3s infinite; }
 @keyframes pulse { 0%{ box-shadow:0 0 0 0 rgba(184,83,53,.55);} 70%{ box-shadow:0 0 0 14px rgba(184,83,53,0);} 100%{ box-shadow:0 0 0 0 rgba(184,83,53,0);} }
 .cb-ai-go { flex:1; background:var(--accent); color:#fff; border:none; cursor:pointer; font-family:inherit; font-weight:600; font-size:14px; border-radius:11px; display:flex; align-items:center; justify-content:center; gap:8px; }
 .cb-ai-go:disabled { opacity:.5; }
-.cb-ai-note { font-size:12px; color:#E8C9A8; margin-top:8px; line-height:1.4; }
+.cb-ai-note { font-size:12px; color:#D4B896; margin-top:8px; line-height:1.4; }
 .cb-form-chips { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:9px; }
 .cb-form-chips .cb-chip { padding:7px 13px; font-size:13px; }
 .cb-form-chips .cb-chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+/* ai suggestions */
+.cb-ai-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+.cb-ai-chip { font-size:12.5px; padding:6px 12px; border-radius:100px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.08); color:#D4E8FF; cursor:pointer; font-family:inherit; transition:all .15s; }
+.cb-ai-chip:hover { background:rgba(255,255,255,0.16); }
 /* wizard */
 .cb-wiz-progress { height:4px; background:var(--paper-2); border-radius:4px; overflow:hidden; margin:2px 0 4px; }
 .cb-wiz-progress > div { height:100%; background:var(--accent); border-radius:4px; transition:width .35s cubic-bezier(.2,.8,.2,1); }
@@ -136,7 +140,7 @@ html, body { background:#F4EEE3; }
 .cb-photo-pick { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 .cb-photo-prev { width:72px; height:72px; border-radius:18px; background:var(--paper-2); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); overflow:hidden; background-size:cover; background-position:center; flex-shrink:0; }
 .cb-detail-top { display:flex; flex-direction:column; align-items:center; text-align:center; padding:8px 0 4px; }
-.cb-detail-avatar { width:96px; height:96px; border-radius:28px; display:flex; align-items:center; justify-content:center; color:#FBF8F1; font-weight:600; font-size:34px; font-family:'Fraunces',serif; margin-bottom:14px; overflow:hidden; background-size:cover; background-position:center; }
+.cb-detail-avatar { width:96px; height:96px; border-radius:28px; display:flex; align-items:center; justify-content:center; color:#F0EAE0; font-weight:600; font-size:34px; font-family:'Fraunces',serif; margin-bottom:14px; overflow:hidden; background-size:cover; background-position:center; }
 .cb-detail-name { font-family:'Fraunces',serif; font-size:26px; font-weight:600; }
 .cb-detail-role { font-size:14px; color:var(--ink-soft); margin-top:4px; }
 .cb-level-badge { display:inline-flex; align-items:center; gap:8px; margin-top:12px; padding:7px 14px; border-radius:100px; font-size:13px; font-weight:600; }
@@ -152,7 +156,7 @@ html, body { background:#F4EEE3; }
 .cb-rel-row { display:flex; align-items:center; gap:9px; padding:9px 0; border-bottom:1px solid var(--line); }
 .cb-rel-name { font-size:15px; font-weight:500; color:var(--accent-deep); cursor:pointer; }
 .cb-rel-label { font-size:12px; background:var(--paper-2); color:var(--ink-soft); padding:3px 10px; border-radius:100px; }
-.cb-confirm { background:var(--paper); border-radius:18px; padding:24px; max-width:360px; width:calc(100% - 36px); text-align:center; }
+.cb-confirm { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:24px; max-width:360px; width:calc(100% - 36px); text-align:center; }
 .cb-confirm h3 { font-family:'Fraunces',serif; font-size:20px; margin-bottom:8px; }
 .cb-confirm p { font-size:14px; color:var(--ink-soft); margin-bottom:20px; }
 .cb-confirm-actions { display:flex; gap:10px; }
@@ -179,6 +183,17 @@ html, body { background:#F4EEE3; }
 .cb-set-note { font-size:13px; color:var(--ink-soft); line-height:1.5; margin-bottom:16px; }
 .cb-set-note a { color:var(--accent); }
 .cb-link { color:var(--accent); cursor:pointer; text-decoration:underline; }
+/* relation search */
+.cb-rel-search { display:flex; align-items:center; gap:9px; background:var(--paper-2); border:1px solid var(--line-2); border-radius:11px; padding:11px 13px; margin-bottom:10px; }
+.cb-rel-search:focus-within { border-color:var(--accent); }
+.cb-rel-search input { border:none; outline:none; background:transparent; font-family:inherit; font-size:15px; color:var(--ink); width:100%; }
+.cb-rel-person { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; cursor:pointer; transition:background .12s; }
+.cb-rel-person:hover,.cb-rel-person:active { background:var(--paper-2); }
+.cb-rel-person.selected { background:var(--accent); }
+.cb-rel-person.selected .cb-rel-pname,.cb-rel-person.selected .cb-rel-pmeta { color:#fff; }
+.cb-rel-person-list { max-height:220px; overflow-y:auto; border:1px solid var(--line); border-radius:11px; margin-bottom:12px; }
+.cb-rel-pname { font-size:14.5px; font-weight:500; color:var(--ink); }
+.cb-rel-pmeta { font-size:12px; color:var(--ink-soft); }
 /* graph */
 .cb-graph-overlay { position:fixed; inset:0; background:var(--paper); z-index:40; display:flex; flex-direction:column; }
 .cb-graph-top { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line); background:var(--paper); z-index:2; }
@@ -197,6 +212,10 @@ html, body { background:#F4EEE3; }
 .cb-graph-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:30px; color:var(--ink-soft); font-size:14px; }
 .cb-gnode-label { font-family:'Instrument Sans',sans-serif; font-size:11px; fill:var(--ink); paint-order:stroke; stroke:var(--paper); stroke-width:3px; stroke-linejoin:round; pointer-events:none; }
 .cb-gtag-label { font-family:'Instrument Sans',sans-serif; font-size:10.5px; font-weight:600; fill:var(--accent-deep); pointer-events:none; }
+/* dark scrollbar */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--line-2); border-radius:4px; }
 .cb-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:12px 18px; border-radius:100px; font-size:13.5px; z-index:80; box-shadow:0 6px 24px rgba(34,28,21,0.25); max-width:90%; text-align:center; animation:cbFade .2s ease; }
 </style>
 </head>
@@ -349,8 +368,8 @@ function GraphView({contacts, photos, relations, onClose, onOpenContact}){
     tagN.each(function(d){ const t=d3.select(this).select("text"); const w=(t.node().getComputedTextLength()||30)+18; d3.select(this).select("rect").attr("width",w).attr("x",-w/2).attr("y",-9); d.w=w; });
 
     const personN=node.filter(d=>d.type==="person");
-    personN.append("circle").attr("r",d=>d.r).attr("fill",d=>d.photo?"url(#img-"+d.id+")":d.color).attr("stroke","#FBF8F1").attr("stroke-width",2);
-    personN.filter(d=>!d.photo).append("text").attr("text-anchor","middle").attr("dy","0.34em").attr("fill","#FBF8F1").attr("font-family","Fraunces, serif").attr("font-weight",600).attr("font-size",d=>d.r*0.82).text(d=>initials(d.name));
+    personN.append("circle").attr("r",d=>d.r).attr("fill",d=>d.photo?"url(#img-"+d.id+")":d.color).attr("stroke","rgba(20,18,16,0.7)").attr("stroke-width",2);
+    personN.filter(d=>!d.photo).append("text").attr("text-anchor","middle").attr("dy","0.34em").attr("fill","#F0EAE0").attr("font-family","Fraunces, serif").attr("font-weight",600).attr("font-size",d=>d.r*0.82).text(d=>initials(d.name));
     personN.append("text").attr("class","cb-gnode-label").attr("text-anchor","middle").attr("dy",d=>d.r+12).text(d=>d.name.split(/\s+/)[0]);
 
     const sim=d3.forceSimulation(nodes)
@@ -757,7 +776,7 @@ function App(){
         {speechOK && <button className={"cb-mic"+(recording?" rec":"")} onClick={toggleRec}>{recording?<Ic name="square" size={20}/>:<Ic name="mic" size={22}/>}</button>}
         <button className="cb-ai-go" onClick={aiFill} disabled={aiBusy||!aiText.trim()}>{aiBusy?<><Ic name="loader" size={16} cls="cb-spin"/> Разбираю…</>:<><Ic name="sparkles" size={16}/> Распознать</>}</button>
       </div>
-      <button className="cb-ai-go" style={{width:"100%",marginTop:8,background:"transparent",border:"1px solid rgba(255,255,255,0.18)",color:"#F4EEE3"}} onClick={()=>shotRef.current.click()} disabled={ocrBusy}>{ocrBusy?<><Ic name="loader" size={16} cls="cb-spin"/> Читаю скриншот…</>:<><Ic name="image" size={16}/> Со скриншота профиля</>}</button>
+      <button className="cb-ai-go" style={{width:"100%",marginTop:8,background:"transparent",border:"1px solid rgba(255,255,255,0.18)",color:"#F0EAE0"}} onClick={()=>shotRef.current.click()} disabled={ocrBusy}>{ocrBusy?<><Ic name="loader" size={16} cls="cb-spin"/> Читаю скриншот…</>:<><Ic name="image" size={16}/> Со скриншота профиля</>}</button>
       {aiNote && <div className="cb-ai-note">{aiNote}</div>}
       <input ref={shotRef} type="file" accept="image/*" onChange={aiFromImage} style={{display:"none"}}/>
     </div>
@@ -771,9 +790,9 @@ function App(){
   ) : null;
 
   const wizSteps = [
-    { q:"Как зовут?", hint:"Можно начать с голоса, текста или скриншота профиля — остальное ИИ заполнит сам.", required:true, body:(<>
+    { q:"Как зовут?", hint:"Опишите человека голосом или текстом — ИИ сам разберёт имя, телефон, компанию и теги.", required:true, body:(<>
         {aiPanelEl}
-        <input className="cb-input" value={form.name} onChange={e=>setF("name",e.target.value)} placeholder="Иван Петров"/>
+        <input className="cb-input" value={form.name} onChange={e=>setF("name",e.target.value)} placeholder="Иван Петров" autoFocus/>
       </>) },
     { q:"Телефон?", body:<input className="cb-input" inputMode="tel" value={form.phone} onChange={e=>setF("phone",e.target.value)} placeholder="+7 999 123-45-67"/> },
     { q:"Почта?", body:<input className="cb-input" inputMode="email" value={form.email} onChange={e=>setF("email",e.target.value)} placeholder="ivan@mail.ru"/> },
@@ -1016,7 +1035,7 @@ function App(){
                   : <button className="cb-wiz-next" onClick={()=>setWizStep(s=>s+1)} disabled={!wizCanNext}>Дальше <Ic name="arrowRight" size={18}/></button>}
               </div>
               {!wizLast && !wizCur.required && <button className="cb-wiz-skip" onClick={()=>setWizStep(s=>s+1)}>Пропустить</button>}
-              {!wizLast && form.name.trim() && <button className="cb-wiz-skip" onClick={saveContact}>Сохранить сейчас</button>}
+              {!wizLast && form.name.trim() && <button className="cb-wiz-skip" style={{color:"var(--accent)",fontWeight:600}} onClick={saveContact}>⚡ Сохранить сейчас</button>}
             </div>
           </div>
         </div>
@@ -1119,6 +1138,8 @@ function App(){
         const relatedIds=new Set(relations.filter(r=>r.a===relForId||r.b===relForId).map(r=>r.a===relForId?r.b:r.a));
         const others=contacts.filter(c=>c.id!==relForId&&!relatedIds.has(c.id)).sort((a,b)=>a.name.localeCompare(b.name,"ru"));
         const RLABELS=["Брат","Сестра","Родитель","Ребёнок","Супруг(а)","Друг","Коллега","Сосед","Одноклассник","Знакомый"];
+        const [relSearch,setRelSearch]=useState("");
+        const filteredOthers=relSearch.trim()?others.filter(o=>o.name.toLowerCase().includes(relSearch.toLowerCase())||(o.company||"").toLowerCase().includes(relSearch.toLowerCase())):others;
         return (
         <div className="cb-overlay" style={{alignItems:"center"}} onClick={()=>setRelForId(null)}>
           <div className="cb-modal" style={{maxWidth:440}} onClick={e=>e.stopPropagation()}>
@@ -1126,13 +1147,20 @@ function App(){
             <div className="cb-modal-body">
               {others.length===0 ? <div className="cb-set-note">Нет других контактов для связи — сначала добавьте людей.</div> : <>
                 <div className="cb-field"><label>С кем связь?</label>
-                  <select className="cb-input" value={relOther} onChange={e=>setRelOther(e.target.value)}>
-                    <option value="">Выберите человека…</option>
-                    {others.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}
-                  </select>
+                  <div className="cb-rel-search"><Ic name="search" size={16}/><input autoFocus placeholder="Поиск по имени или компании…" value={relSearch} onChange={e=>setRelSearch(e.target.value)}/>{relSearch&&<span onClick={()=>setRelSearch("")} style={{cursor:"pointer",display:"flex",opacity:.6}}><Ic name="x" size={14}/></span>}</div>
+                  <div className="cb-rel-person-list">
+                    {filteredOthers.length===0 && <div style={{padding:"16px",textAlign:"center",color:"var(--ink-soft)",fontSize:13}}>Ничего не найдено</div>}
+                    {filteredOthers.map(o=>{ const ph=photos[o.id]; return (
+                      <div key={o.id} className={"cb-rel-person"+(relOther===o.id?" selected":"")} onClick={()=>setRelOther(relOther===o.id?"":o.id)}>
+                        <div className="cb-avatar" style={Object.assign({width:34,height:34,borderRadius:9,fontSize:12,flexShrink:0},ph?{backgroundImage:"url("+ph+")"}:{background:colorFor(o.name)})}>{!ph&&initials(o.name)}</div>
+                        <div><div className="cb-rel-pname">{o.name}</div>{(o.position||o.company)&&<div className="cb-rel-pmeta">{[o.position,o.company].filter(Boolean).join(" · ")}</div>}</div>
+                        {relOther===o.id && <div style={{marginLeft:"auto",color:"#fff"}}><Ic name="check" size={16}/></div>}
+                      </div>
+                    ); })}
+                  </div>
                 </div>
                 <div className="cb-field"><label>Кем приходится</label>
-                  <div className="cb-form-chips" style={{marginBottom:8}}>{RLABELS.map(l=><button type="button" key={l} className={"cb-chip"+(relLabel===l?" active":"")} onClick={()=>setRelLabel(l)}>{l}</button>)}</div>
+                  <div className="cb-form-chips" style={{marginBottom:8}}>{RLABELS.map(l=><button type="button" key={l} className={"cb-chip"+(relLabel===l?" active":"")} onClick={()=>setRelLabel(relLabel===l?"":l)}>{l}</button>)}</div>
                   <input className="cb-input" value={relLabel} onChange={e=>setRelLabel(e.target.value)} placeholder="или свой вариант…"/>
                 </div>
                 <div className="cb-form-actions">
