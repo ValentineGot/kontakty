@@ -1,5 +1,5 @@
 /* Service worker: офлайн-режим через cache-first */
-const CACHE = "contacts-app-v5";
+const CACHE = "contacts-app-v6";
 const SHELL = [
   "./",
   "./index.html",
